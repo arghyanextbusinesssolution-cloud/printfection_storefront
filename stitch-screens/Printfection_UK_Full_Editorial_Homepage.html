@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PRINTFECTION UK | Industrial Grade Branding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;800;900&amp;family=Hanken+Grotesk:wght@400;600&amp;family=JetBrains+Mono:wght@500;700&amp;family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-high": "#2a2a2a",
+                        "outline-variant": "#5c3f46",
+                        "on-primary-fixed-variant": "#8f0044",
+                        "outline": "#ac878f",
+                        "tertiary-fixed-dim": "#63e063",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#353534",
+                        "on-tertiary-fixed": "#002203",
+                        "tertiary-container": "#21a732",
+                        "surface-bright": "#3a3939",
+                        "secondary-fixed": "#9cf0ff",
+                        "primary": "#ffb1c4",
+                        "on-secondary-fixed-variant": "#004f58",
+                        "surface-dim": "#131313",
+                        "on-surface-variant": "#e5bcc5",
+                        "background": "#131313",
+                        "primary-fixed": "#ffd9e1",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#3f001a",
+                        "on-secondary": "#00363d",
+                        "secondary-container": "#00e3fd",
+                        "secondary-fixed-dim": "#00daf3",
+                        "on-primary": "#65002e",
+                        "on-background": "#e5e2e1",
+                        "tertiary-fixed": "#7ffd7c",
+                        "surface-container-low": "#1c1b1b",
+                        "inverse-primary": "#ba005b",
+                        "inverse-surface": "#e5e2e1",
+                        "on-tertiary-container": "#003206",
+                        "on-secondary-fixed": "#001f24",
+                        "primary-container": "#ff4a8d",
+                        "surface": "#131313",
+                        "on-primary-container": "#590028",
+                        "surface-container-highest": "#353534",
+                        "on-tertiary-fixed-variant": "#00530f",
+                        "on-tertiary": "#003908",
+                        "on-error": "#690005",
+                        "tertiary": "#63e063",
+                        "secondary": "#bdf4ff",
+                        "surface-tint": "#ffb1c4",
+                        "inverse-on-surface": "#313030",
+                        "on-secondary-container": "#00616d",
+                        "primary-fixed-dim": "#ffb1c4",
+                        "surface-container": "#201f1f",
+                        "error": "#ffb4ab",
+                        "on-surface": "#e5e2e1",
+                        "surface-container-lowest": "#0e0e0e",
+                        "magenta": "#FF007F"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "container-max": "1440px",
+                        "section-gap": "120px",
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px"
+                    },
+                    fontFamily: {
+                        "display-lg": ["Chivo", "sans-serif"],
+                        "body-lg": ["Hanken Grotesk", "sans-serif"],
+                        "label-mono": ["JetBrains Mono", "monospace"],
+                        "headline-md": ["Chivo", "sans-serif"],
+                        "body-md": ["Hanken Grotesk", "sans-serif"],
+                        "headline-lg": ["Chivo", "sans-serif"],
+                        "headline-lg-mobile": ["Chivo", "sans-serif"]
+                    },
+                    fontSize: {
+                        "display-lg": ["84px", { lineHeight: "90px", letterSpacing: "-0.04em", fontWeight: "900" }],
+                        "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+                        "label-mono": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500" }],
+                        "headline-md": ["24px", { lineHeight: "30px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+                        "headline-lg": ["48px", { lineHeight: "52px", letterSpacing: "-0.02em", fontWeight: "800" }],
+                        "headline-lg-mobile": ["32px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "800" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Hanken Grotesk', sans-serif; background-color: #0B0B0B; color: #e5e2e1; }
+        .glass-panel { background: rgba(19, 19, 19, 0.4); backdrop-filter: blur(24px); border: 1px solid #333333; }
+        .magenta-accent { color: #FF007F; }
+        .bg-magenta { background-color: #FF007F; }
+        .border-magenta { border-color: #FF007F; }
+        .hover-bg-magenta:hover { background-color: #FF007F; color: #000; border-color: #FF007F; }
+        .industrial-border { border: 1px solid #333333; }
+        .text-outline-white { -webkit-text-stroke: 1px #fff; color: transparent; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col selection:bg-magenta selection:text-black">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-background/40 backdrop-blur-xl border-b border-outline-variant/30 flat no shadows">
+<div class="flex justify-between items-center px-margin-desktop py-6 max-w-container-max mx-auto">
+<div class="font-display-lg text-headline-md tracking-tighter text-on-background uppercase">PRINTFECTION UK</div>
+<div class="hidden md:flex items-center space-x-8 font-label-mono text-label-mono uppercase tracking-widest">
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Services</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Shop</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Bulk Order</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">About</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Blog</a>
+<a class="text-on-surface-variant hover:text-on-surface transition-colors" href="#">Help</a>
+</div>
+<div class="flex items-center space-x-4">
+<button class="font-label-mono text-label-mono uppercase tracking-widest text-on-background hover:text-magenta transition-all duration-300 scale-95 active:scale-90 transition-transform">Request a Quote</button>
+<button class="bg-magenta text-black px-6 py-3 font-label-mono text-label-mono uppercase tracking-widest rounded-none hover:bg-white transition-colors duration-300 scale-95 active:scale-90 transition-transform">Start Your Order</button>
+</div>
+</div>
+</nav>
+<main class="flex-grow pt-[104px]">
+<!-- 1. HERO Section -->
+<section class="relative min-h-[921px] flex items-center justify-center overflow-hidden border-b border-[#333333]">
+<div class="absolute inset-0 z-0 bg-black">
+<div class="w-full h-full bg-cover bg-center opacity-40" data-alt="A highly detailed, cinematic, high-contrast close-up photograph of an industrial garment printing press in action." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmDh2F5C8IJO2XZoRIzSRLR4uw_UiNn4iQQMzMFRwbhjcdD3eu0RXCe_m9VjbIPboTzUhzDNR5GihS9ARzii76hjsoMVSJtD3NmzwKoEbUY3DisQ303c3MFiJ-bpTKsfMOShBIebmwAeUx4ign7zUJ5gzax7kyO6HcdCZHYGYyEphpp4I6UGPsJx612aTysyw_l8FNmanY-lyUmBeMm0Faxzx1zw03vdAR6ppEtwUiC1MCmo9cRK_u')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0B0B0B] via-transparent to-[#0B0B0B]/50"></div>
+</div>
+<div class="relative z-10 max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop w-full text-center">
+<div class="font-label-mono text-label-mono text-magenta uppercase tracking-[0.2em] mb-6">CUSTOM GARMENT PRINTING • UK</div>
+<h1 class="font-display-lg text-[64px] leading-[1.1] md:text-[100px] text-white mb-8 uppercase font-black tracking-tighter">PRINT IT.<br/>WEAR IT.<br/><span class="magenta-accent">MAKE IT YOURS.</span></h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto mb-10 text-xl">Industrial-grade printing for brands that demand perfection. High-volume runs, premium blanks, and absolute consistency from first print to last.</p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+<button class="bg-magenta text-black px-10 py-5 font-label-mono text-label-mono uppercase tracking-widest rounded-none hover:bg-white transition-colors w-full sm:w-auto font-bold">START YOUR BULK ORDER</button>
+<button class="bg-transparent border border-white text-white px-10 py-5 font-label-mono text-label-mono uppercase tracking-widest rounded-none hover:bg-white hover:text-black transition-colors w-full sm:w-auto font-bold">REQUEST A QUOTE</button>
+</div>
+</div>
+</section>
+<!-- 2. INTRODUCTION Section -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto border-b border-[#333333] bg-[#0B0B0B]">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+<div>
+<h2 class="font-display-lg text-headline-lg-mobile md:text-headline-lg uppercase leading-tight mb-8">MORE THAN MERCH. <br/><span class="text-outline-white">WE MAKE YOUR BRAND WEARABLE.</span></h2>
+<p class="font-body-md text-on-surface-variant mb-6 text-lg">We don't just print t-shirts; we manufacture brand identity. Operating from our UK facility, we utilize state-of-the-art screen printing, precision embroidery, and advanced digital techniques to deliver retail-ready garments.</p>
+<p class="font-body-md text-on-surface-variant text-lg">Whether you are an established streetwear label, a corporate entity seeking premium uniforms, or an event organizer needing massive volume, we provide the industrial capacity and meticulous quality control your project demands.</p>
+</div>
+<div class="relative h-[600px] w-full bg-surface-dim industrial-border">
+<img alt="High-end production detail" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqDyXuZiTLh_mpD_uibj_MQaF5EgsFzFIzVKsSxKZl_yJpRCKpzCWkoKoxYEwlCE0qK2lD2oSwwa19vG8A8oLM0NEMhvxP1fnoTsrGy5aIJnn90qDFWIQsz30ew8IY2WqPq5TF9fpkv10k7_gbiHlasMX8djbU8AdJKIpmORJkzkowkh7oSn0hg4XPYcblrj3AXby1VRl2527dQSLqz8REk9mFRIfC1EVWU_K7wFwh3w3yABq_ry2m"/>
+</div>
+</div>
+</section>
+<!-- 3. HOW IT WORKS Section -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto border-b border-[#333333]">
+<div class="mb-20 text-center max-w-4xl mx-auto">
+<h2 class="font-display-lg text-headline-lg-mobile md:text-headline-lg uppercase mb-4">FROM BLANK TO BRANDED <br/>IN FOUR SIMPLE STEPS.</h2>
+<p class="font-body-lg text-on-surface-variant">Our streamlined process takes the complexity out of custom manufacturing.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-0 border-t border-l border-[#333333]">
+<div class="industrial-border border-t-0 border-l-0 p-10 bg-[#0B0B0B] relative group hover:bg-[#111] transition-colors">
+<div class="font-display-lg text-[80px] leading-none text-surface-variant group-hover:text-magenta transition-colors mb-8 font-black">01</div>
+<h3 class="font-label-mono text-label-mono uppercase tracking-widest text-white mb-4">Choose Your Garment</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Select from our curated range of premium blanks, heavyweights, and sustainable options from top global mills.</p>
+</div>
+<div class="industrial-border border-t-0 border-l-0 p-10 bg-[#0B0B0B] relative group hover:bg-[#111] transition-colors">
+<div class="font-display-lg text-[80px] leading-none text-surface-variant group-hover:text-magenta transition-colors mb-8 font-black">02</div>
+<h3 class="font-label-mono text-label-mono uppercase tracking-widest text-white mb-4">Build Your Order</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Mix sizes and colors freely. Scale up for significant bulk discounts. Minimum 25 units per design.</p>
+</div>
+<div class="industrial-border border-t-0 border-l-0 p-10 bg-[#0B0B0B] relative group hover:bg-[#111] transition-colors">
+<div class="font-display-lg text-[80px] leading-none text-surface-variant group-hover:text-magenta transition-colors mb-8 font-black">03</div>
+<h3 class="font-label-mono text-label-mono uppercase tracking-widest text-white mb-4">Create Your Design</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Upload artwork, define placement precisely, and review digital proofs before any ink touches fabric.</p>
+</div>
+<div class="industrial-border border-t-0 border-l-0 p-10 bg-[#0B0B0B] relative group hover:bg-[#111] transition-colors">
+<div class="font-display-lg text-[80px] leading-none text-surface-variant group-hover:text-magenta transition-colors mb-8 font-black">04</div>
+<h3 class="font-label-mono text-label-mono uppercase tracking-widest text-white mb-4">We Print &amp; Deliver</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Industrial-grade production ensures perfect consistency. Carefully packed and delivered fast across the UK.</p>
+</div>
+</div>
+</section>
+<!-- 4. CHOOSE YOUR GARMENT -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto border-b border-[#333333]">
+<div class="flex justify-between items-end mb-16">
+<h2 class="font-display-lg text-headline-lg-mobile md:text-headline-lg uppercase max-w-xl leading-tight">THE PERFECT BLANK <br/>CANVAS.</h2>
+<a class="font-label-mono uppercase tracking-widest text-white hover:text-magenta transition-colors hidden md:block" href="#">VIEW FULL CATALOG ➔</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[600px]">
+<div class="md:col-span-7 relative group overflow-hidden bg-surface-dim industrial-border h-[400px] md:h-auto">
+<img alt="T-Shirts" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6oNnham7TEq3GPNg-SZuS8DjfYjhLNhsktfumFINmp9FC75d_zsNGQVreebmlMXfgSfhoc6DbHQ5M6GaghgZHii0AXbv_v266ijTH4m8DrxHz_no74AdMUWj6M-A_gUTfeZvEdFt6_kDugPbcVCZJQDRIieFZNFISq4r1Yf77dscCZnOxiyEx8yOnQpnn_73e-QutbEGBNUsKZ8hYWeWSYkg20Ecz99-OZWAxLMmxanAsQCnHO2bv"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
+<h3 class="font-display-lg text-4xl text-white uppercase mb-2">PREMIUM T-SHIRTS</h3>
+<p class="text-on-surface-variant mb-6 max-w-md">Heavyweight cotton, vintage washes, and modern retail fits ready for your artwork.</p>
+<a class="font-label-mono uppercase tracking-widest text-magenta hover:text-white transition-colors" href="#">SHOP T-SHIRTS ➔</a>
+</div>
+</div>
+<div class="md:col-span-5 flex flex-col gap-6">
+<div class="relative group overflow-hidden bg-surface-dim industrial-border flex-1 min-h-[288px]">
+<img alt="Hoodies" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0tdXKFsmUSxtozY59ZiY-TqBU11Sh98Ru46jd5AkNOETmb9lNMx1WQG3dJ1j2I1GDy6GcxFywn9pds5NkicNmNrSipNc2H89ac5U6aKi_UHAJJPZjLOImrSrzo6IrYQh2TYYV1P6_LkF_VDyWK9y2mmxGgWXdnMwCI6nghqvZQD9YobSlFKJAmOgnepKc1fFwPQNNLOwObs5hwe1adwa4XSE0Xo6ZhHaUiTp22cq30e0ZZcXi02vK"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
+<h3 class="font-display-lg text-3xl text-white uppercase mb-2">HEAVY HOODIES</h3>
+<p class="text-on-surface-variant mb-4 text-sm">Ultra-thick fleece blends built for longevity.</p>
+<a class="font-label-mono uppercase tracking-widest text-magenta hover:text-white transition-colors text-sm" href="#">SHOP HOODIES ➔</a>
+</div>
+</div>
+<div class="relative group overflow-hidden bg-surface-dim industrial-border flex-1 min-h-[288px]">
+<img alt="Accessories" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU6x9YwtT10zE2D7zbWysunkRvN_hLqy3MHCRGOuQwm7lD53rxoN6a_UBpEYTpdVYK6_NfvlTUJkk4RtBKCPu1ah7TW3VKfJyqIwLaTG_Do4IyafWr499dcZPoCZ18Gt0KyCUyvEJnjQmrR9t3R0_v2rgqCb55IOPMpE6XvHGZCjbvee8zuFPBnpZyLB6rNWx0mtV3WO2A55Rw2XsbKnxGJtRlQxOGcHHd3bFKg1w7iTvxz0QgEPuu"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
+<h3 class="font-display-lg text-3xl text-white uppercase mb-2">HEADWEAR &amp; BAGS</h3>
+<p class="text-on-surface-variant mb-4 text-sm">Complete your collection with embroidered accessories.</p>
+<a class="font-label-mono uppercase tracking-widest text-magenta hover:text-white transition-colors text-sm" href="#">SHOP ACCESSORIES ➔</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. BULK ORDERING -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-[#080808] border-b border-[#333333] relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1/2 h-full bg-magenta/5 blur-[150px] rounded-full pointer-events-none"></div>
+<div class="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center relative z-10">
+<div>
+<div class="font-label-mono text-magenta uppercase tracking-widest mb-4">VOLUME PRODUCTION</div>
+<h2 class="font-display-lg text-headline-lg-mobile md:text-headline-lg uppercase leading-tight mb-8">BUILT FOR SCALE.<br/>PRICED FOR PROFIT.</h2>
+<p class="font-body-md text-on-surface-variant mb-8 text-lg">Our bulk ordering system is engineered for brands. We've eliminated the friction of managing complex size runs and colorways.</p>
+<ul class="space-y-6 mb-10">
+<li class="flex items-start">
+<span class="material-symbols-outlined text-magenta mr-4 mt-1">check_circle</span>
+<div>
+<h4 class="font-label-mono uppercase tracking-widest text-white mb-1">MIX &amp; MATCH ANY WAY</h4>
+<p class="text-on-surface-variant text-sm">Combine different sizes, colors, and even garment styles within the same print run to hit quantity breaks.</p>
+</div>
+</li>
+<li class="flex items-start">
+<span class="material-symbols-outlined text-magenta mr-4 mt-1">trending_down</span>
+<div>
+<h4 class="font-label-mono uppercase tracking-widest text-white mb-1">TRANSPARENT VOLUME PRICING</h4>
+<p class="text-on-surface-variant text-sm">Real-time unit cost updates as you adjust quantities. No hidden setup fees or surprise charges.</p>
+</div>
+</li>
+<li class="flex items-start">
+<span class="material-symbols-outlined text-magenta mr-4 mt-1">inventory_2</span>
+<div>
+<h4 class="font-label-mono uppercase tracking-widest text-white mb-1">DEDICATED ACCOUNT MANAGEMENT</h4>
+<p class="text-on-surface-variant text-sm">Orders over 500 units receive priority routing and a dedicated production specialist.</p>
+</div>
+</li>
+</ul>
+<button class="bg-white text-black px-8 py-4 font-label-mono uppercase tracking-widest hover:bg-magenta transition-colors font-bold">VIEW BULK PRICING</button>
+</div>
+<div class="industrial-border bg-[#111] p-6 rounded-lg shadow-2xl relative">
+<div class="flex justify-between items-center mb-6 pb-4 border-b border-[#333]">
+<span class="font-label-mono text-white">ORDER SUMMARY</span>
+<span class="font-label-mono text-magenta">65 ITEMS</span>
+</div>
+<div class="space-y-4 mb-6">
+<div class="flex justify-between text-sm text-on-surface-variant">
+<span>Stanley/Stella Creator - Black (M)</span>
+<span>x 20</span>
+</div>
+<div class="flex justify-between text-sm text-on-surface-variant">
+<span>Stanley/Stella Creator - Black (L)</span>
+<span>x 30</span>
+</div>
+<div class="flex justify-between text-sm text-on-surface-variant">
+<span>Stanley/Stella Creator - White (L)</span>
+<span>x 15</span>
+</div>
+</div>
+<div class="pt-4 border-t border-[#333] flex justify-between items-center mb-2">
+<span class="text-on-surface-variant text-sm">Unit Price (Discounted)</span>
+<span class="text-white">£8.45</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-bold text-white uppercase">TOTAL ESTIMATE</span>
+<span class="font-bold text-magenta text-xl">£549.25</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 6. ONLINE DESIGN EXPERIENCE -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop text-center bg-[#0B0B0B] border-b border-[#333333]">
+<div class="max-w-3xl mx-auto mb-16">
+<h2 class="font-display-lg text-headline-lg-mobile md:text-headline-lg uppercase mb-6">YOUR IDEA.<br/>ON THE GARMENT.</h2>
+<p class="font-body-lg text-on-surface-variant">Upload your vector artwork or high-res imagery, position it exactly where you want it, and approve your digital proof instantly. It's the closest thing to being in the print shop.</p>
+</div>
+<div class="max-w-5xl mx-auto relative h-[500px] industrial-border bg-surface-dim overflow-hidden flex items-center justify-center">
+<img alt="Design Tool Interface" class="absolute w-full h-full object-cover opacity-30 mix-blend-luminosity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuHaaYeTFwJyYkUFDNCR8kI6fagbu4ssr7d_lJIzKvKpBQ6bCDgT8AvtEOAFWp914V5Z-H-zq7ir5PdPHq8BTPC4btOPSPE_RDixgIkypZwNIDWasbq8xEUAySO0ixR2TuC7qL2F_44Yp0MbgYN-gHochGb3FAWQWY8Q8zP55mfxLwACkXk9iwJ1-EADrZP7RdTuGtBrJ9-VhbCA7LrgUsYJP3SObFncXJebshcTMVuYXxZQCvyWe6"/>
+<div class="relative z-10 bg-black/60 backdrop-blur-md p-8 industrial-border flex flex-col items-center">
+<span class="material-symbols-outlined text-magenta text-6xl mb-4">design_services</span>
+<h3 class="font-label-mono uppercase text-xl text-white tracking-widest mb-2">LAUNCH DESIGN STUDIO</h3>
+<p class="text-on-surface-variant text-sm mb-6">Interactive 3D previews &amp; exact placement metrics.</p>
+<button class="bg-magenta text-black px-6 py-3 font-label-mono uppercase tracking-widest hover:bg-white transition-colors">START DESIGNING</button>
+</div>
+</div>
+</section>
+<!-- 7. PRINTING SERVICES -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto border-b border-[#333333]">
+<div class="mb-16 text-center">
+<h2 class="font-display-lg text-headline-lg-mobile md:text-headline-lg uppercase">INDUSTRIAL TECHNIQUES.<br/>ARTISAN ATTENTION.</h2>
+</div>
+<div class="space-y-24">
+<!-- Screen Printing -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+<div class="h-[400px] bg-surface-dim industrial-border relative">
+<img alt="Screen Printing" class="w-full h-full object-cover opacity-70 grayscale hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoNXPvdv7OZLMLUmtZ1fwYr0SDBMlI05VRBLhP1WNujrn-c9GtxtYi3Uoo7NX9EIGRuBEMhBPn2NcFtCOsFm_faTKjdJIkEcHZim_B9Wbxzm4UbCmnfbPA8ctO5oltGkjtD7s_gslZJoKN1yqrk5TlQzZpwth1a81LbpIej16CIq6RVr5gIMAl4wdzbG0tEdFyfUKs77XjifhTan-J3E0msZ6BPk4zQ8ZZpbVqU2gDVtzPIuQTDKdv"/>
+</div>
+<div>
+<h3 class="font-display-lg text-4xl uppercase text-white mb-4">01. SCREEN PRINTING</h3>
+<p class="font-body-md text-on-surface-variant mb-6">The gold standard for high-volume, highly durable apparel decoration. We use premium plastisol and water-based inks pushed through high-tension mesh for razor-sharp edges and vibrant colors that outlast the garment itself.</p>
+<ul class="font-label-mono text-sm text-surface-variant space-y-2 uppercase tracking-widest">
+<li>• Best for: 50+ units, solid colors</li>
+<li>• Maximum durability</li>
+<li>• Pantone matching available</li>
+</ul>
+</div>
+</div>
+<!-- Embroidery -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+<div class="order-2 md:order-1">
+<h3 class="font-display-lg text-4xl uppercase text-white mb-4">02. PRECISION EMBROIDERY</h3>
+<p class="font-body-md text-on-surface-variant mb-6">Elevate your brand with tactile, three-dimensional threading. Our multi-head industrial machines digitize your logo into thousands of precise stitches, perfect for heavy garments, headwear, and premium corporate identity.</p>
+<ul class="font-label-mono text-sm text-surface-variant space-y-2 uppercase tracking-widest">
+<li>• Best for: Hoodies, Hats, Workwear</li>
+<li>• Premium textured finish</li>
+<li>• 3D Puff options available</li>
+</ul>
+</div>
+<div class="h-[400px] bg-surface-dim industrial-border relative order-1 md:order-2">
+<img alt="Embroidery" class="w-full h-full object-cover opacity-70 grayscale hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdVfMrrBIGUwMVs-FzV4qrVD29B4k7mZwBqrWh8dhZBoxdwl6xZYphRsHCYDZH7jJhAHbpNenBDmrY9PKuV3NZjdr-Cly3V57dArwUwieJQq33GKCFNuZVuzojm3gJVK0l_Ep9KLdUml9RTbfE085X4XlXDfxwnk1-4LFP_mpbeeeAA0ZFJJ77VBu8LEJBjcKiG9zEZp7jB0uwnd0Xy5xIjmYekBmEDrfkkDhxmKENTa1LNuQYOA0K"/>
+</div>
+</div>
+</div>
+</section>
+<!-- 8. WHY PRINTFECTION -->
+<section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-[#050505] border-b border-[#333333]">
+<div class="max-w-container-max mx-auto">
+<h2 class="font-display-lg text-headline-lg-mobile md:text-headline-lg uppercase mb-16 text-center">WHY WE LEAD THE LINE.</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
+<div class="text-center p-6 border border-[#222] hover:border-magenta transition-colors bg-[#0B0B0B]">
+<div class="font-display-lg text-5xl text-magenta mb-4">1</div>
+<h4 class="font-label-mono uppercase text-white tracking-widest mb-2">UK FACILITY</h4>
+<p class="text-on-surface-variant text-sm">Everything produced in-house. No outsourcing. Total control.</p>
+</div>
+<div class="text-center p-6 border border-[#222] hover:border-magenta transition-colors bg-[#0B0B0B]">
+<div class="font-display-lg text-5xl text-magenta mb-4">2</div>
+<h4 class="font-label-mono uppercase text-white tracking-widest mb-2">RETAIL QUALITY</h4>
+<p class="text-on-surface-variant text-sm">Garments meant to be sold on shelves, not given away.</p>
+</div>
+<div class="text-center p-6 border border-[#222] hover:border-magenta transition-colors bg-[#0B0B0B]">
+<div class="font-display-lg text-5xl text-magenta mb-4">3</div>
+<h4 class="font-label-mono uppercase text-white tracking-widest mb-2">STRICT QC</h4>
+<p class="text-on-surface-variant text-sm">Multi-stage inspection before any box is sealed.</p>
+</div>
+<div class="text-center p-6 border border-[#222] hover:border-magenta transition-colors bg-[#0B0B0B]">
+<div class="font-display-lg text-5xl text-magenta mb-4">4</div>
+<h4 class="font-label-mono uppercase text-white tracking-widest mb-2">FAST TURNAROUND</h4>
+<p class="text-on-surface-variant text-sm">Reliable lead times that respect your launch dates.</p>
+</div>
+<div class="text-center p-6 border border-[#222] hover:border-magenta transition-colors bg-[#0B0B0B]">
+<div class="font-display-lg text-5xl text-magenta mb-4">5</div>
+<h4 class="font-label-mono uppercase text-white tracking-widest mb-2">ECO OPTIONS</h4>
+<p class="text-on-surface-variant text-sm">Extensive range of organic and recycled blank options.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- 13. FINAL CTA -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop bg-magenta text-black text-center border-b border-[#333333]">
+<div class="max-w-4xl mx-auto">
+<h2 class="font-display-lg text-headline-lg-mobile md:text-[80px] leading-none uppercase mb-8 font-black">READY TO TURN BLANK INTO BRANDED?</h2>
+<p class="font-body-lg text-black/80 mb-10 font-bold max-w-2xl mx-auto text-xl">Start your project today. Get instant pricing online or speak with our production team for custom requirements.</p>
+<div class="flex flex-col sm:flex-row justify-center gap-4">
+<button class="bg-black text-white px-10 py-5 font-label-mono uppercase tracking-widest hover:bg-white hover:text-black transition-colors font-bold">START ORDER NOW</button>
+<button class="bg-transparent border-2 border-black text-black px-10 py-5 font-label-mono uppercase tracking-widest hover:bg-black hover:text-white transition-colors font-bold">CONTACT SALES</button>
+</div>
+</div>
+</section>
+<!-- 14. FOOTER -->
+<footer class="bg-[#050505] w-full pt-section-gap pb-12 flat no shadows border-none">
+<div class="px-margin-desktop max-w-container-max mx-auto mb-20">
+<h2 class="font-display-lg text-[12vw] leading-none text-white opacity-5 text-center font-black tracking-tighter w-full overflow-hidden select-none">PRINTFECTION</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-12 px-margin-desktop max-w-container-max mx-auto border-t border-[#222] pt-16">
+<div>
+<div class="font-display-lg text-2xl text-white mb-4 uppercase">PRINTFECTION UK</div>
+<p class="font-label-mono text-sm uppercase tracking-widest text-surface-variant mb-6">INDUSTRIAL GRADE BRANDING.</p>
+<p class="text-on-surface-variant text-sm">Premium custom clothing and merchandise manufacturing based in the United Kingdom.</p>
+</div>
+<div>
+<h4 class="font-label-mono text-white uppercase tracking-widest mb-6">SERVICES</h4>
+<ul class="space-y-3 text-sm text-on-surface-variant">
+<li><a class="hover:text-magenta transition-colors" href="#">Screen Printing</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">Embroidery</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">DTG / DTF</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">Relabeling &amp; Finishing</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-mono text-white uppercase tracking-widest mb-6">SUPPORT</h4>
+<ul class="space-y-3 text-sm text-on-surface-variant">
+<li><a class="hover:text-magenta transition-colors" href="#">Help Center / FAQ</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">Artwork Guidelines</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">Shipping &amp; Returns</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">Contact Us</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label-mono text-white uppercase tracking-widest mb-6">COMPANY</h4>
+<ul class="space-y-3 text-sm text-on-surface-variant">
+<li><a class="hover:text-magenta transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">Sustainability</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">Terms of Service</a></li>
+<li><a class="hover:text-magenta transition-colors" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-container-max mx-auto px-margin-desktop mt-16 pt-8 border-t border-[#222] flex flex-col md:flex-row justify-between items-center text-xs font-label-mono text-surface-variant uppercase tracking-widest">
+<span>© 2024 PRINTFECTION UK. ALL RIGHTS RESERVED.</span>
+<div class="flex space-x-4 mt-4 md:mt-0">
+<a class="hover:text-white transition-colors" href="#">INSTAGRAM</a>
+<a class="hover:text-white transition-colors" href="#">LINKEDIN</a>
+<a class="hover:text-white transition-colors" href="#">TWITTER</a>
+</div>
+</div>
+</footer>
+</main>
+</body></html>

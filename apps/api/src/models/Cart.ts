@@ -1,0 +1,46 @@
+import mongoose, { Document, Schema } from 'mongoose';
+import type { CartItemConfig } from '@printfection/types';
+
+export interface ICart extends Document {
+  sessionId: string;
+  customerId?: string;
+  items: CartItemConfig[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const cartSchema = new Schema<ICart>(
+  {
+    sessionId: { type: String, required: true, index: true },
+    customerId: { type: String },
+    items: [
+      {
+        productId: { type: String, required: true },
+        productName: { type: String, required: true },
+        colourName: { type: String, required: true },
+        colourHex: { type: String },
+        variants: [
+          {
+            variantId: { type: String, required: true },
+            size: { type: String, required: true },
+            quantity: { type: Number, required: true, min: 0 },
+          },
+        ],
+        printLocations: [
+          {
+            locationId: { type: String },
+            colourCount: { type: Number, min: 1 },
+          },
+        ],
+        designId: { type: String },
+        pricingSnapshot: { type: Schema.Types.Mixed },
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+cartSchema.index({ sessionId: 1 });
+cartSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 30 });
+
+export const Cart = mongoose.model<ICart>('Cart', cartSchema);

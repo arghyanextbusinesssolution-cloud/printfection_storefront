@@ -1,0 +1,28 @@
+{
+  "name": "printfection-uk",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Printfection UK - Bulk garment printing eCommerce platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @printfection/api\" \"npm run dev -w @printfection/storefront\" \"npm run dev -w @printfection/admin\"",
+    "dev:api": "npm run dev -w @printfection/api",
+    "dev:storefront": "npm run dev -w @printfection/storefront",
+    "dev:admin": "npm run dev -w @printfection/admin",
+    "build": "npm run build -w @printfection/types && npm run build -w @printfection/config && npm run build -w @printfection/shared && npm run build -w @printfection/api && npm run build -w @printfection/storefront && npm run build -w @printfection/admin",
+    "typecheck": "npm run typecheck -w @printfection/api && npm run typecheck -w @printfection/storefront && npm run typecheck -w @printfection/admin",
+    "test": "npm run test -w @printfection/api",
+    "seed": "npm run seed -w @printfection/api",
+    "lint": "npm run lint -w @printfection/api && npm run lint -w @printfection/storefront && npm run lint -w @printfection/admin"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,94 @@
+/* Fonts are loaded via <link> tags in index.html */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0B0B0B;
+    color: #e5e2e1;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: #FF007F;
+    color: #000;
+  }
+}
+
+@layer components {
+  /* ─── Legacy buttons (keep for other pages) ─── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 bg-[#1A1A1A] text-white font-semibold rounded hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1A1A1A] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center px-6 py-3 bg-[#E63946] text-white font-semibold rounded hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E63946] focus:ring-offset-2;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-6 py-3 border-2 border-[#1A1A1A] text-[#1A1A1A] font-semibold rounded hover:bg-[#1A1A1A] hover:text-white transition-colors;
+  }
+
+  /* ─── Editorial CTA buttons ─── */
+  .btn-magenta {
+    @apply inline-flex items-center justify-center px-8 py-4 text-black font-bold uppercase tracking-widest text-xs rounded-none hover:bg-white transition-colors duration-300 active:scale-95;
+    background-color: #FF007F;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-8 py-4 border border-white text-white font-bold uppercase tracking-widest text-xs rounded-none hover:bg-white hover:text-black transition-colors duration-300 active:scale-95;
+  }
+
+  /* ─── Form inputs ─── */
+  .input-field {
+    @apply w-full px-4 py-2.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1A1A1A] focus:border-transparent;
+  }
+
+  /* ─── Card ─── */
+  .card {
+    @apply bg-white border border-gray-200 rounded-lg overflow-hidden;
+  }
+
+  /* ─── Industrial border ─── */
+  .industrial-border {
+    border: 1px solid #333333;
+  }
+
+  /* ─── Glass panel ─── */
+  .glass-panel {
+    background: rgba(19, 19, 19, 0.4);
+    backdrop-filter: blur(24px);
+    border: 1px solid #333333;
+  }
+
+  /* ─── Outlined text ─── */
+  .text-outline-white {
+    -webkit-text-stroke: 1px #ffffff;
+    color: transparent;
+  }
+}
+
+@layer utilities {
+  .tracking-widest-xl {
+    letter-spacing: 0.2em;
+  }
+
+  .fade-up {
+    animation: fadeUp 0.7s ease both;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
