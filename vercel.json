@@ -1,6 +1,0 @@
-{
-  "buildCommand": "npm install && vite build --config apps/storefront/vite.config.ts",
-  "outputDirectory": "apps/storefront/dist",
-  "installCommand": "npm install",
-  "framework": "vite"
-}
