@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
+import { env } from '../config/env';
 
 declare global {
   namespace Express {
@@ -18,9 +19,11 @@ export function sessionMiddleware(req: Request, res: Response, next: NextFunctio
 
   if (!sessionId) {
     sessionId = randomUUID();
+    const isProd = env.NODE_ENV === 'production';
     res.cookie(SESSION_COOKIE, sessionId, {
       httpOnly: true,
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
   }

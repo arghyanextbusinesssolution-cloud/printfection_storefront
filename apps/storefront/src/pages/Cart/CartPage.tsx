@@ -108,8 +108,8 @@ export function CartPage() {
                   
                   {/* Variants size & counts */}
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {item.variants.filter((v) => v.quantity > 0).map((v) => (
-                      <span key={v.size} className="bg-neutral-100 border border-neutral-200 px-2 py-0.5 font-mono text-[9px] text-neutral-700 uppercase">
+                    {item.variants.filter((v) => v.quantity > 0).map((v, idx) => (
+                      <span key={`${v.size}-${v.variantId}-${idx}`} className="bg-neutral-100 border border-neutral-200 px-2 py-0.5 font-mono text-[9px] text-neutral-700 uppercase">
                         {v.size}: {v.quantity}
                       </span>
                     ))}
