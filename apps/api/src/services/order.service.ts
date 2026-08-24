@@ -35,7 +35,7 @@ interface OrderItemInput {
   colourName: string;
   colourHex?: string;
   variants: { variantId: string; size: string; quantity: number }[];
-  printLocations?: { locationId: string; colourCount: number }[];
+  printLocations?: { locationId: string; locationName?: string; colourCount: number }[];
   designId?: string;
   isBulkOrder?: boolean;
   colours?: any[];

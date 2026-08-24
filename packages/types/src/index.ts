@@ -52,6 +52,7 @@ export interface BulkOrderVariantInput {
 
 export interface PrintLocationInput {
   locationId: string;
+  locationName?: string;
   colourCount: number;
 }
 
