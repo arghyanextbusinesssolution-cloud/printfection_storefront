@@ -3,7 +3,7 @@ import { Header, Footer } from '../components/layout/Header';
 
 export function MainLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-surface-bg">
+    <div className="min-h-screen flex flex-col bg-white">
       <Header />
       <main className="flex-1">
         <Outlet />

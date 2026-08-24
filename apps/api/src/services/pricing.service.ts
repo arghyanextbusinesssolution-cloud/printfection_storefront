@@ -106,7 +106,9 @@ export async function calculatePricing(input: PricingCalculateInput): Promise<Pr
 
   if (input.printLocations?.length) {
     for (const pl of input.printLocations) {
-      const location = await PrintLocation.findById(pl.locationId);
+      // Support both code strings (e.g. "FULL_BACK") and legacy ObjectIds
+      const location = await PrintLocation.findOne({ code: pl.locationId })
+        || await PrintLocation.findById(pl.locationId).catch(() => null);
       if (!location || !location.isActive) {
         throw ApiError.badRequest(`Invalid print location: ${pl.locationId}`);
       }
@@ -117,7 +119,7 @@ export async function calculatePricing(input: PricingCalculateInput): Promise<Pr
       }
 
       const rule = await PrintPricingRule.findOne({
-        printLocation: pl.locationId,
+        printLocation: location._id,
         colourCount: pl.colourCount,
         isActive: true,
         minQuantity: { $lte: totalQuantity },

@@ -11,8 +11,10 @@ interface QuoteDetail {
   items: {
     productName: string;
     colourName: string;
+    isBulkOrder?: boolean;
+    colours?: { colourName: string; colourHex?: string; variants: { size: string; quantity: number }[] }[];
     variants: { size: string; quantity: number }[];
-    printLocations?: { locationName?: string; colourCount: number }[];
+    printLocations?: { locationId?: string; locationName?: string; colourCount: number }[];
   }[];
   subtotal: number;
   tax: number;
@@ -87,22 +89,50 @@ export function QuoteDetailPage() {
           {quote.items.map((item, i) => (
             <section key={i} className="card p-6">
               <h3 className="font-semibold">{item.productName}</h3>
-              <p className="text-sm text-brand-gray mt-1">Colour: {item.colourName}</p>
-              <table className="w-full mt-4 text-sm">
-                <thead><tr className="border-b"><th className="text-left py-2">Size</th><th className="text-right py-2">Qty</th></tr></thead>
-                <tbody>
-                  {item.variants?.filter((v) => v.quantity > 0).map((v) => (
-                    <tr key={v.size} className="border-b border-gray-100">
-                      <td className="py-2">{v.size}</td>
-                      <td className="text-right py-2">{v.quantity}</td>
-                    </tr>
+              {item.isBulkOrder ? (
+                <span className="inline-block mt-1 text-[10px] bg-purple-100 text-purple-700 font-semibold uppercase tracking-widest px-2 py-0.5 rounded">
+                  Bulk Order
+                </span>
+              ) : (
+                <p className="text-sm text-brand-gray mt-1">Colour: {item.colourName}</p>
+              )}
+
+              {item.isBulkOrder && item.colours && item.colours.length > 0 ? (
+                <div className="mt-4 space-y-3">
+                  {item.colours.map((col) => (
+                    <div key={col.colourName} className="border rounded-lg overflow-hidden">
+                      <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 border-b">
+                        {col.colourHex && <span className="w-3.5 h-3.5 rounded-full border" style={{ backgroundColor: col.colourHex }} />}
+                        <span className="font-semibold text-sm">{col.colourName}</span>
+                        <span className="ml-auto text-xs text-gray-500">{col.variants.reduce((a, v) => a + v.quantity, 0)} units</span>
+                      </div>
+                      <div className="px-4 py-2 flex flex-wrap gap-2">
+                        {col.variants.filter((v) => v.quantity > 0).map((v) => (
+                          <span key={v.size} className="text-xs bg-gray-100 px-2 py-0.5 rounded font-mono">{v.size}: {v.quantity}</span>
+                        ))}
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              ) : (
+                <table className="w-full mt-4 text-sm">
+                  <thead><tr className="border-b"><th className="text-left py-2">Size</th><th className="text-right py-2">Qty</th></tr></thead>
+                  <tbody>
+                    {item.variants?.filter((v) => v.quantity > 0).map((v) => (
+                      <tr key={v.size} className="border-b border-gray-100">
+                        <td className="py-2">{v.size}</td>
+                        <td className="text-right py-2">{v.quantity}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+
               {item.printLocations && item.printLocations.length > 0 && (
                 <div className="mt-4 pt-4 border-t text-sm">
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Print Locations</p>
                   {item.printLocations.map((pl, j) => (
-                    <div key={j}>{pl.locationName || 'Location'} — {pl.colourCount} colours</div>
+                    <div key={j}>{pl.locationName || pl.locationId || 'Location'} — {pl.colourCount} colour{pl.colourCount > 1 ? 's' : ''}</div>
                   ))}
                 </div>
               )}

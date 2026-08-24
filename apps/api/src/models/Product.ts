@@ -9,6 +9,7 @@ export interface IProduct extends Document {
   brand: Types.ObjectId | string;
   brandName?: string;
   category: Types.ObjectId;
+  garmentCategory?: Types.ObjectId;
   description?: string;
   shortDescription?: string;
   images: string[];
@@ -40,6 +41,7 @@ const productSchema = new Schema<IProduct>(
     brand: { type: Schema.Types.ObjectId, ref: 'Brand' },
     brandName: { type: String, trim: true },
     category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
+    garmentCategory: { type: Schema.Types.ObjectId, ref: 'GarmentCategory' },
     description: { type: String },
     shortDescription: { type: String, trim: true },
     images: [{ type: String }],

@@ -5,6 +5,7 @@ export interface IPrintLocation extends Document {
   code: string;
   image?: string;
   icon?: string;
+  iconSvg?: string;
   maximumColours: number;
   isActive: boolean;
   sortOrder: number;
@@ -18,6 +19,7 @@ const printLocationSchema = new Schema<IPrintLocation>(
     code: { type: String, required: true, unique: true, uppercase: true },
     image: { type: String },
     icon: { type: String },
+    iconSvg: { type: String },
     maximumColours: { type: Number, required: true, min: 1, default: 8 },
     isActive: { type: Boolean, default: true },
     sortOrder: { type: Number, default: 0 },

@@ -30,15 +30,18 @@ export async function addToCart(
   const cartItem: CartItemConfig = {
     productId: item.productId,
     productName: item.productName,
-    colourName: item.colourName,
+    colourName: item.colourName || '',
     colourHex: item.colourHex,
-    variants: item.variants,
+    variants: item.variants || [],
     printLocations: item.printLocations,
     designId: item.designId,
     pricingSnapshot,
+    isBulkOrder: item.isBulkOrder || false,
+    colours: item.colours,
+    artworks: item.artworks,
   };
 
-  cart.items.push(cartItem);
+  cart.items.push(cartItem as any);
   await cart.save();
   return cart;
 }
@@ -56,6 +59,21 @@ export async function removeFromCart(sessionId: string, itemIndex: number): Prom
 export async function clearCart(sessionId: string): Promise<ICart> {
   const cart = await getOrCreateCart(sessionId);
   cart.items = [];
+  await cart.save();
+  return cart;
+}
+
+export async function updateItemArtworks(
+  sessionId: string,
+  itemIndex: number,
+  artworks: any[]
+): Promise<ICart> {
+  const cart = await getOrCreateCart(sessionId);
+  if (itemIndex < 0 || itemIndex >= cart.items.length) {
+    throw ApiError.notFound('Cart item not found');
+  }
+  cart.items[itemIndex].artworks = artworks;
+  cart.markModified('items');
   await cart.save();
   return cart;
 }

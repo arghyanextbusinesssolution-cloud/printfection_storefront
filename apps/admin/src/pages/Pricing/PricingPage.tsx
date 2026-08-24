@@ -57,6 +57,7 @@ export function PricingPage() {
   const [locCode, setLocCode] = useState('');
   const [locMaxColours, setLocMaxColours] = useState(8);
   const [locIsActive, setLocIsActive] = useState(true);
+  const [locIconSvg, setLocIconSvg] = useState('');
 
   // Form States - Rule
   const [ruleLocationId, setRuleLocationId] = useState('');
@@ -166,6 +167,7 @@ export function PricingPage() {
     setLocCode('');
     setLocMaxColours(8);
     setLocIsActive(true);
+    setLocIconSvg('');
     setLocationModalOpen(true);
   };
 
@@ -176,6 +178,7 @@ export function PricingPage() {
     setLocCode(loc.code);
     setLocMaxColours(loc.maximumColours);
     setLocIsActive(loc.isActive);
+    setLocIconSvg((loc as any).iconSvg || '');
     setLocationModalOpen(true);
   };
 
@@ -220,12 +223,13 @@ export function PricingPage() {
   const handleSaveLocation = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const payload = {
+    const payload: any = {
       name: locName,
       code: locCode.toUpperCase(),
       maximumColours: locMaxColours,
       isActive: locIsActive,
     };
+    if (locIconSvg.trim()) payload.iconSvg = locIconSvg.trim();
 
     if (editingLocation) {
       updateLocationMutation.mutate({ id: editingLocation._id, data: payload });
@@ -520,6 +524,22 @@ export function PricingPage() {
                   onChange={(e) => setLocMaxColours(parseInt(e.target.value, 10) || 8)}
                   className="input-field"
                 />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-brand-gray uppercase mb-1">Icon / SVG Outline</label>
+                <textarea
+                  value={locIconSvg}
+                  onChange={(e) => setLocIconSvg(e.target.value)}
+                  className="input-field font-mono text-xs"
+                  rows={3}
+                  placeholder="<svg viewBox='0 0 100 100'>...</svg>"
+                />
+                <p className="text-[10px] text-brand-gray mt-1">Paste SVG garment outline code. Used in bulk order wizard print location selector.</p>
+                {locIconSvg && (
+                  <div className="mt-2 flex items-center justify-center w-16 h-16 border rounded p-1 bg-gray-50">
+                    <span dangerouslySetInnerHTML={{ __html: locIconSvg }} className="w-full h-full" />
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2 pt-2">
                 <input

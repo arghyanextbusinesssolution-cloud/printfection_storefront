@@ -10,6 +10,7 @@ router.use(sessionMiddleware);
 
 router.get('/', cartController.getCart);
 router.post('/items', validate(addToCartSchema), cartController.addToCart);
+router.put('/items/:index/artworks', cartController.updateItemArtworks);
 router.delete('/items/:index', cartController.removeFromCart);
 router.delete('/', cartController.clearCart);
 router.post('/recalculate', cartController.recalculateCart);

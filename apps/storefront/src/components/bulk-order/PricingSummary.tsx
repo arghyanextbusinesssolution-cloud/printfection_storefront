@@ -8,52 +8,51 @@ interface PricingSummaryProps {
 
 export function PricingSummary({ pricing, title = 'Price Breakdown' }: PricingSummaryProps) {
   return (
-    <div className="bg-[#111] border border-[#222] p-6">
-      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#FF007F] mb-1">Pricing</p>
-      <h3 className="font-display font-black text-white uppercase tracking-tight text-lg mb-5">{title}</h3>
-      <dl className="space-y-3 text-sm">
+    <div className="bg-white border border-outline-variant p-6 rounded-2xl shadow-card">
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-magenta mb-1">Pricing Summary</p>
+      <h3 className="font-display font-black text-on-surface uppercase tracking-tight text-lg mb-5">{title}</h3>
+      <dl className="space-y-3.5 text-sm">
         <div className="flex justify-between">
-          <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#666]">Garments</dt>
-          <dd className="font-mono text-[11px] text-[#aaa]">{formatCurrency(pricing.garmentSubtotal, pricing.currency)}</dd>
+          <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-on-surface-variant">Garments Subtotal</dt>
+          <dd className="font-mono text-[11px] text-on-surface font-semibold">{formatCurrency(pricing.garmentSubtotal, pricing.currency)}</dd>
         </div>
         {pricing.printingSubtotal > 0 && (
           <div className="flex justify-between">
-            <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#666]">Printing</dt>
-            <dd className="font-mono text-[11px] text-[#aaa]">{formatCurrency(pricing.printingSubtotal, pricing.currency)}</dd>
+            <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-on-surface-variant">Printing Customisation</dt>
+            <dd className="font-mono text-[11px] text-on-surface font-semibold">{formatCurrency(pricing.printingSubtotal, pricing.currency)}</dd>
           </div>
         )}
         {pricing.setupCharges > 0 && (
           <div className="flex justify-between">
-            <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#666]">Setup charges</dt>
-            <dd className="font-mono text-[11px] text-[#aaa]">{formatCurrency(pricing.setupCharges, pricing.currency)}</dd>
+            <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-on-surface-variant">Screen Setup Charges</dt>
+            <dd className="font-mono text-[11px] text-on-surface font-semibold">{formatCurrency(pricing.setupCharges, pricing.currency)}</dd>
           </div>
         )}
         {pricing.discount > 0 && (
-          <div className="flex justify-between text-[#22c55e]">
-            <dt className="font-mono text-[11px] uppercase tracking-[0.1em]">Discount</dt>
-            <dd className="font-mono text-[11px]">-{formatCurrency(pricing.discount, pricing.currency)}</dd>
+          <div className="flex justify-between text-emerald-600 font-semibold">
+            <dt className="font-mono text-[11px] uppercase tracking-[0.1em]">Bulk discount</dt>
+            <dd className="font-mono text-[11px] text-emerald-600">-{formatCurrency(pricing.discount, pricing.currency)}</dd>
           </div>
         )}
-        <div className="flex justify-between border-t border-[#333] pt-3">
-          <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#666]">Subtotal</dt>
-          <dd className="font-mono text-[11px] text-[#aaa]">{formatCurrency(pricing.subtotal, pricing.currency)}</dd>
+        <div className="flex justify-between border-t border-outline-variant/60 pt-3">
+          <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-on-surface-variant">Subtotal</dt>
+          <dd className="font-mono text-[11px] text-on-surface font-semibold">{formatCurrency(pricing.subtotal, pricing.currency)}</dd>
         </div>
         <div className="flex justify-between">
-          <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#666]">VAT (20%)</dt>
-          <dd className="font-mono text-[11px] text-[#aaa]">{formatCurrency(pricing.tax, pricing.currency)}</dd>
+          <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-on-surface-variant">VAT (20%)</dt>
+          <dd className="font-mono text-[11px] text-on-surface font-semibold">{formatCurrency(pricing.tax, pricing.currency)}</dd>
         </div>
         {pricing.shipping > 0 && (
           <div className="flex justify-between">
-            <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#666]">Shipping</dt>
-            <dd className="font-mono text-[11px] text-[#aaa]">{formatCurrency(pricing.shipping, pricing.currency)}</dd>
+            <dt className="font-mono text-[11px] uppercase tracking-[0.1em] text-on-surface-variant">Shipping</dt>
+            <dd className="font-mono text-[11px] text-on-surface font-semibold">{formatCurrency(pricing.shipping, pricing.currency)}</dd>
           </div>
         )}
-        <div className="flex justify-between border-t border-[#333] pt-4">
-          <dt className="font-display font-black text-white uppercase tracking-tight text-base">Total</dt>
-          <dd className="font-display font-black text-[#FF007F] text-xl">{formatCurrency(pricing.total, pricing.currency)}</dd>
+        <div className="flex justify-between border-t border-outline pt-4">
+          <dt className="font-display font-black text-on-surface uppercase tracking-tight text-base">Estimated Total</dt>
+          <dd className="font-display font-black text-magenta text-xl">{formatCurrency(pricing.total, pricing.currency)}</dd>
         </div>
       </dl>
     </div>
   );
 }
-

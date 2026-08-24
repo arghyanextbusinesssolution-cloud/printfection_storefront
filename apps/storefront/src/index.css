@@ -5,9 +5,13 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    background-color: #0B0B0B;
-    color: #e5e2e1;
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body, #root {
+    background-color: #FFFFFF;
+    color: #1A1A1A;
     font-family: 'Hanken Grotesk', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -15,60 +19,173 @@
 
   ::selection {
     background-color: #FF007F;
-    color: #000;
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F5F5F5;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #C9C4C6;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FF007F;
+  }
+}
+
+@layer utilities {
+  .shadow-card {
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.06), 0 4px 16px 0 rgba(0, 0, 0, 0.06);
+  }
+  .shadow-card-hover {
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.10), 0 12px 32px 0 rgba(0, 0, 0, 0.08);
+  }
+  .shadow-selected {
+    box-shadow: 0 0 0 2px #FF007F, 0 4px 16px 0 rgba(255, 0, 127, 0.15);
+  }
+  .shadow-step {
+    box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   }
 }
 
 @layer components {
-  /* ─── Legacy buttons (keep for other pages) ─── */
+  /* ─── Primary buttons ─── */
   .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 bg-[#1A1A1A] text-white font-semibold rounded hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1A1A1A] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-6 py-3 bg-on-surface text-white font-semibold rounded hover:bg-neutral-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-on-surface focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98];
   }
 
   .btn-accent {
-    @apply inline-flex items-center justify-center px-6 py-3 bg-[#E63946] text-white font-semibold rounded hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E63946] focus:ring-offset-2;
+    @apply inline-flex items-center justify-center px-6 py-3 bg-magenta text-white font-semibold rounded hover:bg-pink-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-magenta focus:ring-offset-2 active:scale-[0.98];
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center px-6 py-3 border-2 border-[#1A1A1A] text-[#1A1A1A] font-semibold rounded hover:bg-[#1A1A1A] hover:text-white transition-colors;
+    @apply inline-flex items-center justify-center px-6 py-3 border-2 border-on-surface text-on-surface font-semibold rounded hover:bg-on-surface hover:text-white transition-all duration-200;
   }
 
-  /* ─── Editorial CTA buttons ─── */
+  /* ─── Magenta CTA ─── */
   .btn-magenta {
-    @apply inline-flex items-center justify-center px-8 py-4 text-black font-bold uppercase tracking-widest text-xs rounded-none hover:bg-white transition-colors duration-300 active:scale-95;
+    @apply inline-flex items-center justify-center px-8 py-4 font-bold uppercase tracking-widest text-xs rounded-none transition-all duration-300 active:scale-95;
     background-color: #FF007F;
+    color: #fff;
+  }
+  .btn-magenta:hover {
+    background-color: #1A1A1A;
+    color: #fff;
   }
 
-  .btn-ghost {
-    @apply inline-flex items-center justify-center px-8 py-4 border border-white text-white font-bold uppercase tracking-widest text-xs rounded-none hover:bg-white hover:text-black transition-colors duration-300 active:scale-95;
+  .btn-ghost-dark {
+    @apply inline-flex items-center justify-center px-8 py-4 border-2 border-on-surface text-on-surface font-bold uppercase tracking-widest text-xs rounded-none hover:bg-on-surface hover:text-white transition-all duration-300 active:scale-95;
   }
 
   /* ─── Form inputs ─── */
   .input-field {
-    @apply w-full px-4 py-2.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[#1A1A1A] focus:border-transparent;
+    @apply w-full px-4 py-2.5 border border-outline rounded-lg bg-white text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-magenta focus:border-transparent transition-shadow duration-200;
   }
 
-  /* ─── Card ─── */
+  /* ─── Cards ─── */
   .card {
-    @apply bg-white border border-gray-200 rounded-lg overflow-hidden;
+    @apply bg-white border border-outline-variant rounded-xl overflow-hidden shadow-card;
   }
 
-  /* ─── Industrial border ─── */
-  .industrial-border {
-    border: 1px solid #333333;
+  .card-interactive {
+    @apply card transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 cursor-pointer;
   }
 
-  /* ─── Glass panel ─── */
+  .card-selected {
+    @apply shadow-selected;
+    border-color: #FF007F;
+  }
+
+  /* ─── Step cards ─── */
+  .step-panel {
+    @apply bg-white border border-outline-variant rounded-2xl p-6 shadow-step animate-scale-in;
+  }
+
+  /* ─── Section labels ─── */
+  .section-label {
+    @apply font-mono text-[10px] uppercase tracking-[0.25em] text-magenta;
+  }
+
+  /* ─── Step progress indicator ─── */
+  .step-badge {
+    @apply w-8 h-8 rounded-full font-display font-black text-sm flex items-center justify-center flex-shrink-0;
+  }
+
+  .step-badge-active {
+    @apply step-badge bg-magenta text-white;
+  }
+
+  .step-badge-done {
+    @apply step-badge bg-on-surface text-white;
+  }
+
+  .step-badge-todo {
+    @apply step-badge bg-surface-container text-on-surface-variant border border-outline-variant;
+  }
+
+  /* ─── Glass panel (light version) ─── */
   .glass-panel {
-    background: rgba(19, 19, 19, 0.4);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(24px);
-    border: 1px solid #333333;
+    border: 1px solid rgba(201,196,198,0.6);
   }
 
-  /* ─── Outlined text ─── */
-  .text-outline-white {
-    -webkit-text-stroke: 1px #ffffff;
+  /* ─── Colour swatch card ─── */
+  .colour-swatch {
+    @apply relative h-28 overflow-hidden rounded-xl border-2 transition-all duration-200 cursor-pointer;
+  }
+
+  .colour-swatch-selected {
+    @apply shadow-selected;
+    border-color: #FF007F;
+    transform: scale(1.02);
+  }
+
+  .colour-swatch-unselected {
+    @apply border-outline-variant hover:border-outline hover:shadow-card;
+  }
+
+  /* ─── Print location selector ─── */
+  .location-card {
+    @apply bg-white border-2 rounded-xl p-5 transition-all duration-200 cursor-pointer;
+  }
+
+  .location-card-selected {
+    @apply location-card border-magenta shadow-selected;
+  }
+
+  .location-card-unselected {
+    @apply location-card border-outline-variant hover:border-outline hover:shadow-card;
+  }
+
+  /* ─── Image zoom container ─── */
+  .image-zoom-wrap {
+    @apply overflow-hidden;
+  }
+  .image-zoom-wrap img {
+    @apply transition-transform duration-500 ease-out;
+  }
+  .image-zoom-wrap:hover img {
+    @apply scale-105;
+  }
+
+  /* ─── Outlined text (for editorial headings) ─── */
+  .text-outline-dark {
+    -webkit-text-stroke: 1.5px #1A1A1A;
     color: transparent;
+  }
+
+  /* ─── Skeleton loader ─── */
+  .skeleton {
+    background: linear-gradient(90deg, #EBE9E6 0%, #F5F3F1 50%, #EBE9E6 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+    border-radius: 6px;
   }
 }
 
@@ -77,18 +194,35 @@
     letter-spacing: 0.2em;
   }
 
-  .fade-up {
-    animation: fadeUp 0.7s ease both;
+  /* Step enter animations */
+  .step-enter {
+    animation: fadeUp 0.45s ease both;
+  }
+
+  /* Product card elevation on hover */
+  .product-card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover;
   }
 }
 
+/* ─── Keyframe definitions (referenced by Tailwind animation utilities) ─── */
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
 }

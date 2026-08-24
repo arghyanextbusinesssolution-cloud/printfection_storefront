@@ -25,7 +25,21 @@ export async function apiGet<T>(url: string, params?: Record<string, unknown>): 
 }
 
 export async function apiPost<T>(url: string, body?: unknown): Promise<T> {
-  const { data } = await api.post<ApiResponse<T>>(url, body);
+  // If body is FormData, let axios set Content-Type with boundary automatically
+  const headers = body instanceof FormData ? { 'Content-Type': undefined } : {};
+  const { data } = await api.post<ApiResponse<T>>(url, body, { headers });
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+}
+
+export async function apiPut<T>(url: string, body?: unknown): Promise<T> {
+  const { data } = await api.put<ApiResponse<T>>(url, body);
+  if (!data.success) throw new Error(data.message);
+  return data.data;
+}
+
+export async function apiPatch<T>(url: string, body?: unknown): Promise<T> {
+  const { data } = await api.patch<ApiResponse<T>>(url, body);
   if (!data.success) throw new Error(data.message);
   return data.data;
 }

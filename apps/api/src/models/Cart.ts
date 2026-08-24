@@ -17,7 +17,8 @@ const cartSchema = new Schema<ICart>(
       {
         productId: { type: String, required: true },
         productName: { type: String, required: true },
-        colourName: { type: String, required: true },
+        // Legacy single-colour fields (optional for unified bulk orders)
+        colourName: { type: String },
         colourHex: { type: String },
         variants: [
           {
@@ -29,11 +30,36 @@ const cartSchema = new Schema<ICart>(
         printLocations: [
           {
             locationId: { type: String },
+            locationName: { type: String },
             colourCount: { type: Number, min: 1 },
           },
         ],
         designId: { type: String },
         pricingSnapshot: { type: Schema.Types.Mixed },
+        // Unified multi-colour bulk fields
+        isBulkOrder: { type: Boolean, default: false },
+        colours: [
+          {
+            colourName: { type: String, required: true },
+            colourHex: { type: String },
+            colourImage: { type: String },
+            variants: [
+              {
+                variantId: { type: String, required: true },
+                size: { type: String, required: true },
+                quantity: { type: Number, required: true, min: 0 },
+              },
+            ],
+          },
+        ],
+        artworks: [
+          {
+            colourName: { type: String },
+            locationId: { type: String },
+            url: { type: String, required: true },
+            filename: { type: String, required: true },
+          },
+        ],
       },
     ],
   },

@@ -11,6 +11,7 @@ export interface ProductListQuery {
   page?: number;
   limit?: number;
   category?: string;
+  garmentCategory?: string;
   brand?: string;
   gender?: string;
   organic?: boolean;
@@ -35,6 +36,7 @@ function buildProductFilter(query: ProductListQuery): FilterQuery<IProduct> {
   }
 
   if (query.category) filter.category = query.category;
+  if (query.garmentCategory) filter.garmentCategory = query.garmentCategory;
   if (query.brand) filter.brandName = new RegExp(query.brand, 'i');
   if (query.gender) filter.gender = query.gender;
   if (query.organic !== undefined) filter.organic = query.organic;
@@ -76,6 +78,7 @@ export async function listProducts(
   const [items, total] = await Promise.all([
     Product.find(filter)
       .populate('category', 'name slug')
+      .populate('garmentCategory', 'name slug icon iconSvg')
       .sort(sort)
       .skip(skip)
       .limit(limit)
@@ -90,7 +93,10 @@ export async function listProducts(
 }
 
 export async function getProductById(id: string): Promise<IProduct> {
-  const product = await Product.findById(id).populate('category', 'name slug').lean();
+  const product = await Product.findById(id)
+    .populate('category', 'name slug')
+    .populate('garmentCategory', 'name slug icon iconSvg')
+    .lean();
   if (!product) throw ApiError.notFound('Product not found');
   return product as unknown as IProduct;
 }
@@ -98,6 +104,7 @@ export async function getProductById(id: string): Promise<IProduct> {
 export async function getProductBySlug(slug: string): Promise<IProduct> {
   const product = await Product.findOne({ slug, isActive: true })
     .populate('category', 'name slug')
+    .populate('garmentCategory', 'name slug icon iconSvg')
     .lean();
   if (!product) throw ApiError.notFound('Product not found');
   return product as unknown as IProduct;

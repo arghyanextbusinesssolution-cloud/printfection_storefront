@@ -1,8 +1,12 @@
-import type { PricingBreakdown } from '@printfection/types';
+import type { PricingBreakdown, BulkColourConfig, BulkArtworkRef, PrintLocationInput } from '@printfection/types';
+
+export type { BulkColourConfig, BulkArtworkRef };
 
 export interface PrintLocationSelection {
   locationId: string;
   locationName: string;
+  code: string;
+  iconSvg?: string;
   colourCount: number;
   maximumColours: number;
 }
@@ -13,6 +17,7 @@ export interface Product {
   slug: string;
   sku: string;
   brandName?: string;
+  garmentCategory?: { _id: string; name: string; slug: string; icon?: string };
   category: { _id: string; name: string; slug: string };
   description?: string;
   shortDescription?: string;
@@ -36,10 +41,22 @@ export interface ProductVariant {
   sku: string;
   colourName: string;
   colourHex?: string;
+  colourImage?: string;
   size: string;
   price: number;
   stock: number;
   image?: string;
+  isActive: boolean;
+}
+
+export interface GarmentCategory {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  icon?: string;
+  iconSvg?: string;
+  sortOrder: number;
   isActive: boolean;
 }
 
@@ -64,21 +81,43 @@ export interface PrintLocation {
   _id: string;
   name: string;
   code: string;
+  iconSvg?: string;
+  description?: string;
   maximumColours: number;
   isActive: boolean;
   sortOrder: number;
 }
 
+/* ─── New unified bulk order flow state ─── */
+export interface BulkColourState extends BulkColourConfig {
+  /** Keyed by size for UI control */
+  sizeQuantities: Record<string, number>;
+}
+
 export interface BulkOrderState {
+  /* Step 1 – Garment Category */
+  garmentCategoryId: string | null;
+  garmentCategoryName: string;
+  /* Step 2 – Product */
   productId: string | null;
   productName: string;
-  colourName: string | null;
-  colourHex: string | null;
-  quantities: Record<string, number>;
-  printLocations: PrintLocationSelection[];
-  designId: string | null;
+  productImages: string[];
+  /* Step 3 – Garment Colours (multiple) */
+  selectedColours: BulkColourState[];
+  /* Step 4 – Size & Quantity per colour */
+  /* (stored inside selectedColours[].sizeQuantities) */
+  /* Step 5 – Print Locations */
+  selectedLocations: PrintLocationSelection[];
+  /* Step 6 – Print Colour Count per location */
+  /* (stored inside selectedLocations[].colourCount) */
+  /* Step 7 – Artwork uploads per colour+location */
+  artworks: BulkArtworkRef[];
+  /* Pricing */
   pricing: PricingBreakdown | null;
+  /* Current wizard step (1-based) */
   step: number;
+  /* Edit index of cart item (null if new) */
+  editItemIndex: number | null;
 }
 
 export interface CartItem {
@@ -87,9 +126,13 @@ export interface CartItem {
   colourName: string;
   colourHex?: string;
   variants: { variantId: string; size: string; quantity: number }[];
-  printLocations?: { locationId: string; colourCount: number }[];
+  printLocations?: PrintLocationInput[];
   designId?: string;
   pricingSnapshot?: PricingBreakdown;
+  /* Unified bulk order fields */
+  isBulkOrder?: boolean;
+  colours?: BulkColourConfig[];
+  artworks?: BulkArtworkRef[];
 }
 
 export interface CartData {

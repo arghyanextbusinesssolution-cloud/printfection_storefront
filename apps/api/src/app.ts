@@ -10,6 +10,7 @@ import { stripeWebhook } from './controllers/payment.controller';
 
 import authRoutes from './routes/auth.routes';
 import categoryRoutes from './routes/category.routes';
+import garmentCategoryRoutes from './routes/garmentCategory.routes';
 import productRoutes from './routes/product.routes';
 import bulkOrderRoutes from './routes/bulkOrder.routes';
 import singleOrderRoutes from './routes/singleOrder.routes';
@@ -51,6 +52,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/garment-categories', garmentCategoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/bulk-order', bulkOrderRoutes);
 app.use('/api/single-order', singleOrderRoutes);

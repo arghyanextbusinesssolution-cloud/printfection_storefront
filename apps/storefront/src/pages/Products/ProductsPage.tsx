@@ -63,19 +63,19 @@ export function ProductsPage() {
   ].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#0B0B0B]">
+    <div className="min-h-screen bg-white text-black">
 
       {/* ── Page Header ── */}
-      <div className="border-b border-[#222] bg-[#0B0B0B]">
+      <div className="border-b border-neutral-100 bg-white">
         <div className="max-w-[1440px] mx-auto px-4 md:px-[64px] py-14">
-          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#FF007F] mb-3">
-            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-magenta mb-3">
+            <Link to="/" className="hover:text-black transition-colors">Home</Link>
             {' '}&rsaquo;{' '}Products
           </p>
-          <h1 className="font-display font-black text-[clamp(36px,5vw,64px)] leading-none uppercase tracking-tighter text-white mb-4">
+          <h1 className="font-display font-black text-[clamp(36px,5vw,64px)] leading-none uppercase tracking-tighter text-black mb-4">
             The Full Catalog.
           </h1>
-          <p className="text-[#e5bcc5] text-lg max-w-xl">
+          <p className="text-neutral-600 text-lg max-w-xl">
             Premium blanks from the world's leading garment mills — ready for your artwork.
           </p>
         </div>
@@ -92,12 +92,12 @@ export function ProductsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search products…"
-              className="flex-1 bg-[#111] border border-[#333] text-white text-sm px-4 py-2.5 placeholder-[#555] focus:outline-none focus:border-[#FF007F] transition-colors"
+              className="flex-1 bg-white border border-neutral-300 text-black text-sm px-4 py-2.5 placeholder-neutral-400 focus:outline-none focus:border-magenta transition-colors"
               aria-label="Search products"
             />
             <button
               type="submit"
-              className="bg-[#FF007F] text-black font-mono text-[10px] uppercase tracking-[0.15em] px-5 hover:bg-white transition-colors"
+              className="bg-black text-white font-mono text-[10px] uppercase tracking-[0.15em] px-5 hover:bg-magenta hover:text-black transition-colors"
             >
               Search
             </button>
@@ -107,7 +107,7 @@ export function ProductsPage() {
           <select
             value={filters.sort || ''}
             onChange={(e) => updateFilter('sort', e.target.value || undefined)}
-            className="bg-[#111] border border-[#333] text-[#e5e2e1] text-sm px-4 py-2.5 focus:outline-none focus:border-[#FF007F] font-mono appearance-none cursor-pointer sm:w-52"
+            className="bg-white border border-neutral-300 text-neutral-800 text-sm px-4 py-2.5 focus:outline-none focus:border-magenta font-mono appearance-none cursor-pointer sm:w-52"
             aria-label="Sort products"
           >
             <option value="">Sort: Name A–Z</option>
@@ -118,7 +118,7 @@ export function ProductsPage() {
 
           {/* Mobile filter toggle */}
           <button
-            className="sm:hidden flex items-center gap-2 bg-[#111] border border-[#333] text-white font-mono text-[10px] uppercase tracking-[0.15em] px-4 py-2.5"
+            className="sm:hidden flex items-center gap-2 bg-white border border-neutral-300 text-black font-mono text-[10px] uppercase tracking-[0.15em] px-4 py-2.5"
             onClick={() => setFiltersOpen(!filtersOpen)}
           >
             <span className="material-symbols-outlined text-base">tune</span>
@@ -127,7 +127,7 @@ export function ProductsPage() {
 
           {/* Product count */}
           {data && (
-            <span className="hidden lg:block font-mono text-[10px] uppercase tracking-[0.1em] text-[#555] ml-auto whitespace-nowrap">
+            <span className="hidden lg:block font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-400 ml-auto whitespace-nowrap">
               {data.pagination.total} product{data.pagination.total !== 1 ? 's' : ''}
             </span>
           )}
@@ -148,7 +148,7 @@ export function ProductsPage() {
               <button
                 key={f!.key}
                 onClick={() => updateFilter(f!.key, undefined)}
-                className="flex items-center gap-1.5 bg-[#1a1a1a] border border-[#333] text-[#e5bcc5] font-mono text-[9px] uppercase tracking-[0.1em] px-2.5 py-1.5 hover:border-[#FF007F] hover:text-[#FF007F] transition-colors"
+                className="flex items-center gap-1.5 bg-neutral-50 border border-neutral-200 text-magenta font-mono text-[9px] uppercase tracking-[0.1em] px-2.5 py-1.5 hover:border-magenta hover:text-black transition-colors"
               >
                 {f!.label}: {f!.value}
                 <span className="text-[11px] leading-none">✕</span>
@@ -156,7 +156,7 @@ export function ProductsPage() {
             ))}
             <button
               onClick={clearFilters}
-              className="font-mono text-[9px] uppercase tracking-[0.1em] text-[#555] hover:text-white transition-colors px-1"
+              className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400 hover:text-black transition-colors px-1"
             >
               Clear all
             </button>
@@ -170,13 +170,13 @@ export function ProductsPage() {
             className={`flex-shrink-0 w-64 ${filtersOpen ? 'block' : 'hidden'} sm:block`}
             aria-label="Product filters"
           >
-            <div className="sticky top-24 bg-[#111] industrial-border p-5">
+            <div className="sticky top-24 bg-neutral-50 border border-neutral-200 p-5">
               <div className="flex items-center justify-between mb-5">
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white">Filters</span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-black">Filters</span>
                 {activeFilterCount > 0 && (
                   <button
                     onClick={clearFilters}
-                    className="font-mono text-[9px] uppercase tracking-[0.1em] text-[#555] hover:text-[#FF007F] transition-colors"
+                    className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400 hover:text-magenta transition-colors"
                   >
                     Reset
                   </button>
@@ -199,7 +199,7 @@ export function ProductsPage() {
                   onClear={clearFilters}
                 />
               ) : (
-                <p className="font-mono text-[10px] text-[#444] uppercase tracking-[0.1em]">Loading…</p>
+                <p className="font-mono text-[10px] text-neutral-400 uppercase tracking-[0.1em]">Loading…</p>
               )}
             </div>
           </aside>
@@ -234,9 +234,9 @@ export function ProductsPage() {
             {data && data.items.length > 0 && (
               <>
                 {/* Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-px bg-[#222]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   {data.items.map((product) => (
-                    <div key={product._id} className="bg-[#0B0B0B]">
+                    <div key={product._id}>
                       <ProductCard product={product} />
                     </div>
                   ))}
@@ -248,7 +248,7 @@ export function ProductsPage() {
                     <button
                       onClick={() => updateFilter('page', String(Math.max(1, filters.page - 1)))}
                       disabled={filters.page <= 1}
-                      className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#555] px-3 py-2 border border-[#222] hover:border-[#444] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      className="font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-400 px-3 py-2 border border-neutral-200 hover:border-black hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                       aria-label="Previous page"
                     >
                       ←
@@ -259,8 +259,8 @@ export function ProductsPage() {
                         onClick={() => updateFilter('page', String(page))}
                         className={`font-mono text-[10px] uppercase tracking-[0.1em] w-9 h-9 border transition-colors ${
                           page === data.pagination.page
-                            ? 'bg-[#FF007F] border-[#FF007F] text-black'
-                            : 'border-[#222] text-[#555] hover:border-[#444] hover:text-white'
+                            ? 'bg-magenta border-magenta text-white font-bold'
+                            : 'border-neutral-200 text-neutral-400 hover:border-black hover:text-black'
                         }`}
                         aria-current={page === data.pagination.page ? 'page' : undefined}
                       >
@@ -270,7 +270,7 @@ export function ProductsPage() {
                     <button
                       onClick={() => updateFilter('page', String(Math.min(data.pagination.totalPages, filters.page + 1)))}
                       disabled={filters.page >= data.pagination.totalPages}
-                      className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#555] px-3 py-2 border border-[#222] hover:border-[#444] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      className="font-mono text-[10px] uppercase tracking-[0.1em] text-neutral-400 px-3 py-2 border border-neutral-200 hover:border-black hover:text-black disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                       aria-label="Next page"
                     >
                       →

@@ -6,6 +6,7 @@ export interface IProductVariant extends Document {
   externalVariantId?: string;
   colourName: string;
   colourHex?: string;
+  colourImage?: string;
   size: string;
   price: number;
   stock: number;
@@ -22,6 +23,7 @@ const variantSchema = new Schema<IProductVariant>(
     externalVariantId: { type: String, sparse: true },
     colourName: { type: String, required: true, trim: true },
     colourHex: { type: String, trim: true },
+    colourImage: { type: String },
     size: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0, default: 0 },

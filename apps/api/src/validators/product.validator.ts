@@ -8,6 +8,7 @@ export const createProductSchema = z.object({
   brand: z.string().optional(),
   brandName: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
+  garmentCategory: z.string().optional(),
   description: z.string().optional(),
   shortDescription: z.string().optional(),
   images: z.array(z.string()).optional(),
@@ -34,6 +35,7 @@ export const createVariantSchema = z.object({
   externalVariantId: z.string().optional(),
   colourName: z.string().min(1),
   colourHex: z.string().optional(),
+  colourImage: z.string().optional(),
   size: z.string().min(1),
   price: z.number().min(0),
   stock: z.number().min(0).optional(),
@@ -45,6 +47,7 @@ export const productQuerySchema = z.object({
   page: z.coerce.number().optional(),
   limit: z.coerce.number().optional(),
   category: z.string().optional(),
+  garmentCategory: z.string().optional(),
   brand: z.string().optional(),
   gender: z.string().optional(),
   organic: z.coerce.boolean().optional(),
@@ -70,6 +73,19 @@ export const createCategorySchema = z.object({
 });
 
 export const updateCategorySchema = createCategorySchema.partial();
+
+export const createGarmentCategorySchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().optional(),
+  description: z.string().optional(),
+  image: z.string().optional(),
+  icon: z.string().optional(),
+  iconSvg: z.string().optional(),
+  sortOrder: z.number().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const updateGarmentCategorySchema = createGarmentCategorySchema.partial();
 
 export const bulkOrderValidateSchema = z.object({
   productId: z.string().min(1),

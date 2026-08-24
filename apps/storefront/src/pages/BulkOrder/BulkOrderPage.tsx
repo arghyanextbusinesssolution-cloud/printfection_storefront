@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiGet, apiPost } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPost, apiDelete } from '../../services/api';
 import { useBulkOrderStore } from '../../store/bulkOrderStore';
 import { useCartStore } from '../../store/cartStore';
 import { BulkOrderSteps } from '../../components/bulk-order/BulkOrderSteps';
 import { SizeQuantityGrid } from '../../components/bulk-order/SizeQuantityGrid';
 import { PrintLocationSelector } from '../../components/bulk-order/PrintLocationSelector';
+import { PrintColourCountGrid } from '../../components/bulk-order/PrintColourCountGrid';
 import { PricingSummary } from '../../components/bulk-order/PricingSummary';
 import { LoadingSpinner, ErrorMessage } from '../../components/common/LoadingSpinner';
 import { formatCurrency } from '@printfection/shared';
-import type { Product, BulkOrderSize, PrintLocation } from '../../types';
+import type { Product, BulkOrderSize, PrintLocation, GarmentCategory, ProductVariant } from '../../types';
 import type { PaginatedResponse, PricingBreakdown } from '@printfection/types';
-import { DesignStudioAdapter } from '../../components/design/DesignStudioAdapter';
 
 export function BulkOrderPage() {
   const [searchParams] = useSearchParams();
@@ -20,45 +20,54 @@ export function BulkOrderPage() {
   const preselectedProduct = searchParams.get('product');
   const [addError, setAddError] = useState('');
 
+  const queryClient = useQueryClient();
   const store = useBulkOrderStore();
   const setCart = useCartStore((s) => s.setCart);
 
   useEffect(() => {
-    window.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [store.step]);
 
-  const { data: products, isLoading: loadingProducts } = useQuery({
-    queryKey: ['products-bulk'],
-    queryFn: () => apiGet<PaginatedResponse<Product>>('/products', { limit: 100 }),
+  // Step 1: Query Garment Categories
+  const { data: garmentCategories, isLoading: loadingCategories } = useQuery({
+    queryKey: ['garment-categories-bulk'],
+    queryFn: () => apiGet<GarmentCategory[]>('/garment-categories'),
   });
 
+  // Step 2: Query Products filtered by Garment Category
+  const { data: products, isLoading: loadingProducts } = useQuery({
+    queryKey: ['products-bulk', store.garmentCategoryId],
+    queryFn: () =>
+      apiGet<PaginatedResponse<Product>>('/products', {
+        limit: 100,
+        garmentCategory: store.garmentCategoryId || undefined,
+      }),
+    enabled: !!store.garmentCategoryId,
+  });
+
+  // Step 3: Query Product Colours Config
   const { data: config, isLoading: loadingConfig } = useQuery({
     queryKey: ['bulk-config', store.productId],
-    queryFn: () => apiGet<{
-      product: { id: string; name: string; minimumOrderQuantity: number; currency: string };
-      colours: { name: string; hex?: string; image?: string }[];
-    }>(`/bulk-order/config/${store.productId}`),
-    enabled: !!store.productId && store.step >= 2,
+    queryFn: () =>
+      apiGet<{
+        product: { id: string; name: string; minimumOrderQuantity: number; currency: string };
+        colours: { name: string; hex?: string; image?: string }[];
+      }>(`/bulk-order/config/${store.productId}`),
+    enabled: !!store.productId && store.step >= 3,
   });
 
-  const { data: sizesData, isLoading: loadingSizes } = useQuery({
-    queryKey: ['bulk-sizes', store.productId, store.colourName],
-    queryFn: () => apiGet<{ minimumOrderQuantity: number; sizes: BulkOrderSize[] }>(
-      `/bulk-order/sizes/${store.productId}/${encodeURIComponent(store.colourName!)}`
-    ),
-    enabled: !!store.productId && !!store.colourName && store.step >= 3,
+  // Step 4: Query Product Variants (to get accurate variant IDs, stocks & prices per size/colour)
+  const { data: variants, isLoading: loadingVariants } = useQuery({
+    queryKey: ['product-variants-bulk', store.productId],
+    queryFn: () => apiGet<ProductVariant[]>(`/products/${store.productId}/variants`),
+    enabled: !!store.productId && store.step >= 4,
   });
 
-  const { data: printLocations } = useQuery({
-    queryKey: ['print-locations'],
+  // Step 5: Query Print Locations
+  const { data: printLocations, isLoading: loadingLocations } = useQuery({
+    queryKey: ['print-locations-bulk'],
     queryFn: () => apiGet<PrintLocation[]>('/print-locations'),
-    enabled: store.step >= 4,
-  });
-
-  const { data: designData } = useQuery({
-    queryKey: ['order-design', store.designId],
-    queryFn: () => apiGet<{ configuration?: { locations?: Record<string, { previewUrl?: string; elements?: any[] }> } }>(`/designs/${store.designId}`),
-    enabled: !!store.designId && store.step === 6,
+    enabled: store.step >= 5,
   });
 
   const pricingMutation = useMutation({
@@ -70,137 +79,138 @@ export function BulkOrderPage() {
     onSuccess: (data) => store.setPricing(data),
   });
 
-  const validateMutation = useMutation({
-    mutationFn: () => {
-      const variants = buildVariants();
-      return apiPost<{ valid: boolean; errors: string[] }>('/bulk-order/validate', {
-        productId: store.productId,
-        colourName: store.colourName,
-        variants,
-      });
-    },
-  });
-
   const addToCartMutation = useMutation({
-    mutationFn: () => {
-      const variants = buildVariants();
-      return apiPost('/cart/items', {
+    mutationFn: async () => {
+      // Send the unified bulk order payload
+      const payload = {
+        isBulkOrder: true,
         productId: store.productId,
         productName: store.productName,
-        colourName: store.colourName,
-        colourHex: store.colourHex,
-        variants,
+        colours: store.selectedColours.map((c) => ({
+          colourName: c.colourName,
+          colourHex: c.colourHex,
+          colourImage: c.colourImage,
+          variants: c.variants,
+        })),
         printLocations: store.getPrintLocationsPayload(),
-        designId: store.designId,
-      });
+        artworks: store.artworks || [], // preserve existing artworks when editing!
+      };
+
+      if (store.editItemIndex !== null) {
+        // Delete original item first
+        await apiDelete(`/cart/items/${store.editItemIndex}`);
+      }
+
+      return apiPost('/cart/items', payload);
     },
     onSuccess: async () => {
       const cartData = await apiGet('/cart');
       setCart(cartData as Parameters<typeof setCart>[0]);
+      await queryClient.invalidateQueries({ queryKey: ['cart'] });
+      await queryClient.invalidateQueries({ queryKey: ['cart-header'] });
       store.reset();
       navigate('/cart');
     },
     onError: (err) => setAddError(err instanceof Error ? err.message : 'Failed to add to cart'),
   });
 
-  function buildVariants() {
-    if (!sizesData) return [];
-    return sizesData.sizes
-      .filter((s) => (store.quantities[s.size] || 0) > 0)
-      .map((s) => ({
-        variantId: s.variantId,
-        size: s.size,
-        quantity: store.quantities[s.size],
-      }));
-  }
+  // Flat helper to format sizes for SizeQuantityGrid
+  const getProductSizes = (): BulkOrderSize[] => {
+    if (!variants) return [];
+    // Extract unique sizes from the variants list
+    const uniqueSizes = Array.from(new Set(variants.map((v) => v.size)));
+    // Sort them in standard order
+    const order = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+    uniqueSizes.sort((a, b) => order.indexOf(a) - order.indexOf(b));
 
-  function calculatePricing() {
+    return uniqueSizes.map((sz) => {
+      const match = variants.find((v) => v.size === sz);
+      return {
+        variantId: match?._id || '',
+        size: sz,
+        price: match?.price || 0,
+        stock: variants.filter((v) => v.size === sz).reduce((max, v) => Math.max(max, v.stock), 0),
+        sku: match?.sku || '',
+      };
+    });
+  };
+
+  const calculatePricing = () => {
     pricingMutation.mutate({
       productId: store.productId!,
-      variants: buildVariants(),
+      variants: store.getVariantsPayload(),
       printLocations: store.getPrintLocationsPayload(),
     });
-  }
+  };
 
+  // Preselection trigger
   useEffect(() => {
     if (preselectedProduct && !store.productId && products?.items) {
-      const product = products.items.find((p) => p._id === preselectedProduct);
-      if (product) store.setProduct(product._id, product.name);
+      const prod = products.items.find((p) => p._id === preselectedProduct);
+      if (prod) {
+        if (prod.garmentCategory) {
+          store.setGarmentCategory(prod.garmentCategory._id, prod.garmentCategory.name);
+        }
+        store.setProduct(prod._id, prod.name, prod.images);
+      }
     }
   }, [preselectedProduct, products, store.productId]);
 
+  // Recalculate price when reaching summary step
   useEffect(() => {
-    if (store.step === 6 && !store.pricing && sizesData) {
+    if (store.step === 7 && !store.pricing && variants) {
       calculatePricing();
     }
   }, [store.step]);
 
-  const total = store.getTotalQuantity();
-  const minQty = sizesData?.minimumOrderQuantity ?? config?.product.minimumOrderQuantity ?? 25;
+  const totalQuantity = store.getTotalQuantity();
+  const minQty = config?.product.minimumOrderQuantity || 25;
+  const meetsMinimum = totalQuantity >= minQty;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-      <div className="mb-8">
-        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#FF007F] mb-2">Custom Garment Printing</p>
-        <h1 className="text-3xl font-display font-black uppercase tracking-tighter text-white">Bulk Order</h1>
-        <p className="mt-2 text-[#777] font-mono text-xs uppercase tracking-widest">Configure your garment order step by step</p>
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-10 lg:py-16">
+      {/* Editorial Header */}
+      <div className="mb-10 text-left">
+        <span className="section-label mb-2 block">Custom Clothing Manufacturing</span>
+        <h1 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter text-on-surface leading-none">
+          Bulk Custom Order
+        </h1>
+        <p className="mt-3 text-on-surface-variant font-mono text-[11px] uppercase tracking-widest">
+          Premium Production Wizard &middot; Step {store.step} of 7
+        </p>
       </div>
 
+      {/* Progress Steps Indicators */}
       <BulkOrderSteps />
 
+      {/* STEP 1: Garment Category Selection */}
       {store.step === 1 && (
-        <section>
-          <h2 className="font-display font-black text-xl uppercase tracking-tighter text-white mb-6">Choose a Product</h2>
-          {loadingProducts ? <LoadingSpinner /> : (
+        <section className="step-enter">
+          <h2 className="font-display font-black text-2xl uppercase tracking-tighter text-on-surface mb-6">
+            Select Garment Type
+          </h2>
+          {loadingCategories ? (
+            <LoadingSpinner />
+          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {products?.items.map((product) => {
-                const isSelected = store.productId === product._id;
-                const firstImage = product.images?.[0];
+              {garmentCategories?.map((gcat) => {
+                const isSelected = store.garmentCategoryId === gcat._id;
                 return (
                   <button
-                    key={product._id}
-                    onClick={() => store.setProduct(product._id, product.name)}
-                    className={`bg-[#111] border text-left transition-all duration-200 group overflow-hidden ${
-                      isSelected
-                        ? 'border-[#FF007F] shadow-[0_0_24px_rgba(255,0,127,0.2)]'
-                        : 'border-[#333] hover:border-[#FF007F]'
-                    }`}
+                    key={gcat._id}
+                    onClick={() => store.setGarmentCategory(gcat._id, gcat.name)}
+                    className={`card-interactive p-5 text-left flex items-center gap-5 ${isSelected ? 'card-selected animate-select-pulse' : ''
+                      }`}
                   >
-                    {/* Product image */}
-                    <div className="relative h-52 bg-[#0d0d0d] overflow-hidden">
-                      {firstImage ? (
-                        <img
-                          src={firstImage}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <svg className="w-12 h-12 text-[#222]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      )}
-                      {/* Selected badge */}
-                      {isSelected && (
-                        <span className="absolute top-3 right-3 bg-[#FF007F] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.15em] text-white">
-                          ✓ Selected
-                        </span>
-                      )}
-                      {/* Category badge */}
-                      {product.organic && (
-                        <span className="absolute top-3 left-3 bg-black/70 border border-[#333] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-[#22c55e]">
-                          Organic
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Text info */}
-                    <div className="p-4">
-                      <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#FF007F] mb-1">{product.brandName}</p>
-                      <h3 className="font-display font-bold text-white text-base uppercase tracking-tight group-hover:text-[#FF007F] transition-colors">{product.name}</h3>
-                      <p className="font-mono text-[10px] text-[#555] mt-2 uppercase tracking-widest">
-                        From {formatCurrency(product.basePrice, product.currency)} · MOQ {product.minimumOrderQuantity}
+                    <span className="text-4xl flex-shrink-0 w-12 h-12 flex items-center justify-center" role="img" aria-label={gcat.name}>
+                      {gcat.icon || '👕'}
+                    </span>
+                    <div>
+                      <h3 className="font-display font-bold text-on-surface uppercase text-base tracking-tight mb-1">
+                        {gcat.name}
+                      </h3>
+                      <p className="text-sm text-on-surface-variant leading-relaxed">
+                        {gcat.description || 'Custom customisation templates available'}
                       </p>
                     </div>
                   </button>
@@ -211,52 +221,85 @@ export function BulkOrderPage() {
         </section>
       )}
 
-
+      {/* STEP 2: Product Selection (filtered by category) */}
       {store.step === 2 && (
-        <section>
+        <section className="step-enter">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="font-display font-black text-xl uppercase tracking-tighter text-white">
-              Choose Colour — <span className="text-[#FF007F]">{store.productName}</span>
+            <h2 className="font-display font-black text-xl uppercase tracking-tighter text-on-surface">
+              Choose Product
             </h2>
-            <button onClick={() => store.setStep(1)} className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#FF007F] hover:text-white transition-colors">Change product</button>
+            <button
+              onClick={() => store.setStep(1)}
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-magenta hover:text-on-surface transition-colors"
+            >
+              Back to category
+            </button>
           </div>
-          {loadingConfig ? <LoadingSpinner /> : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {config?.colours.map((colour) => {
-                const isSelected = store.colourName === colour.name;
-                const isLight = colour.hex && (
-                  parseInt(colour.hex.slice(1,3),16)*0.299 +
-                  parseInt(colour.hex.slice(3,5),16)*0.587 +
-                  parseInt(colour.hex.slice(5,7),16)*0.114
-                ) > 160;
+          {loadingProducts ? (
+            <LoadingSpinner />
+          ) : products?.items.length === 0 ? (
+            <ErrorMessage message="No products found in this category yet." />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {products?.items.map((product) => {
+                const isSelected = store.productId === product._id;
+                const firstImage = product.images?.[0];
                 return (
-                  <button
-                    key={colour.name}
-                    onClick={() => store.setColour(colour.name, colour.hex)}
-                    className={`relative h-32 overflow-hidden border-2 transition-all duration-200 group ${
-                      isSelected
-                        ? 'border-[#FF007F] shadow-[0_0_20px_rgba(255,0,127,0.3)] scale-[1.02]'
-                        : 'border-[#333] hover:border-[#666]'
-                    }`}
-                    style={{ backgroundColor: colour.hex || '#333' }}
+                  <div
+                    key={product._id}
+                    onClick={() => store.setProduct(product._id, product.name, product.images)}
+                    className={`card-interactive text-left group overflow-hidden flex flex-col justify-between cursor-pointer ${isSelected ? 'card-selected animate-select-pulse' : ''
+                      }`}
                   >
-                    {/* Subtle dark gradient at bottom for legibility */}
-                    <span className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    {/* Colour name label */}
-                    <span className={`absolute bottom-3 left-0 right-0 text-center font-mono text-[10px] uppercase tracking-[0.15em] z-10 ${
-                      isLight ? 'text-[#111]' : 'text-white'
-                    }`}>
-                      {colour.name}
-                    </span>
-                    {/* Selected checkmark */}
-                    {isSelected && (
-                      <span className="absolute top-2 right-2 w-5 h-5 bg-[#FF007F] flex items-center justify-center z-10">
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                    <div>
+                      <div className="relative h-56 bg-surface-container overflow-hidden image-zoom-wrap">
+                        {firstImage ? (
+                          <img src={firstImage} alt={product.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-outline">No Image</div>
+                        )}
+                      </div>
+                      <div className="p-5">
+                        <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-magenta mb-1 block">
+                          {product.brandName}
+                        </span>
+                        <h3 className="font-display font-bold text-on-surface text-base uppercase tracking-tight mb-2">
+                          {product.name}
+                        </h3>
+                        <p className="font-mono text-[10px] text-on-surface-variant uppercase tracking-widest">
+                          From {formatCurrency(product.basePrice, product.currency)} · MOQ {product.minimumOrderQuantity}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="px-5 pb-5 pt-0 flex gap-2 w-full mt-auto">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          store.setProduct(product._id, product.name, product.images);
+                        }}
+                        className={`flex-1 font-mono text-[10px] uppercase tracking-[0.15em] py-2.5 text-center font-bold transition-all ${isSelected
+                            ? 'bg-magenta text-white'
+                            : 'bg-black text-white hover:bg-magenta hover:text-black'
+                          }`}
+                      >
+                        {isSelected ? 'Selected' : 'Select'}
+                      </button>
+                      <a
+                        href={`/products/${product.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="border border-neutral-300 hover:border-black text-black font-mono text-[10px] uppercase tracking-[0.15em] px-4 py-2.5 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        View Product
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                      </span>
-                    )}
-                  </button>
+                      </a>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -264,173 +307,326 @@ export function BulkOrderPage() {
         </section>
       )}
 
+      {/* STEP 3: Multiple Garment Colour Selection */}
       {store.step === 3 && (
-        <section>
-          <div className="flex justify-between mb-6">
-            <h2 className="text-xl font-semibold">Sizes & Quantities — {store.colourName}</h2>
-            <button onClick={() => store.setStep(2)} className="text-sm text-brand-accent hover:underline">Change colour</button>
+        <section className="step-enter">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="font-display font-black text-xl uppercase tracking-tighter text-on-surface">
+              Select Garment Colours
+            </h2>
+            <button
+              onClick={() => store.setStep(2)}
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-magenta hover:text-on-surface transition-colors"
+            >
+              Back to products
+            </button>
           </div>
-          {loadingSizes ? <LoadingSpinner /> : sizesData ? (
+          {loadingConfig ? (
+            <LoadingSpinner />
+          ) : (
             <>
-              <SizeQuantityGrid sizes={sizesData.sizes} quantities={store.quantities}
-                minimumOrderQuantity={minQty} currency={config?.product.currency || 'GBP'}
-                onQuantityChange={store.setQuantity} />
-              <div className="mt-8 flex justify-between">
-                <button onClick={() => store.setStep(2)} className="btn-outline text-sm">Back</button>
-                <button onClick={() => store.setStep(4)} disabled={total < minQty} className="btn-primary text-sm">
-                  Configure Printing
+              <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-on-surface-variant mb-4">
+                Choose one or more fabric colours for your order run:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {config?.colours.map((colour) => {
+                  const isSelected = store.selectedColours.some((c) => c.colourName === colour.name);
+                  return (
+                    <button
+                      key={colour.name}
+                      onClick={() =>
+                        store.toggleColour({
+                          colourName: colour.name,
+                          colourHex: colour.hex,
+                          colourImage: colour.image,
+                        })
+                      }
+                      className={`colour-swatch ${isSelected ? 'colour-swatch-selected' : 'colour-swatch-unselected'
+                        }`}
+                      style={{ backgroundColor: colour.hex || '#ddd' }}
+                    >
+                      <span className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                      <span className="absolute bottom-3 left-0 right-0 text-center font-mono text-[10px] uppercase tracking-[0.15em] text-white">
+                        {colour.name}
+                      </span>
+                      {isSelected && (
+                        <span className="absolute top-2 right-2 w-5 h-5 bg-magenta text-white rounded-full flex items-center justify-center border border-white">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-10 flex justify-between">
+                <button onClick={() => store.setStep(2)} className="btn-ghost-dark text-sm">
+                  Back
+                </button>
+                <button
+                  onClick={() => store.setStep(4)}
+                  disabled={store.selectedColours.length === 0}
+                  className="btn-magenta text-sm disabled:opacity-50"
+                >
+                  Continue to Sizes
                 </button>
               </div>
             </>
-          ) : <ErrorMessage message="No sizes available" />}
-        </section>
-      )}
-
-      {store.step === 4 && (
-        <section>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="font-display font-black text-xl uppercase tracking-tighter text-white">Print Locations</h2>
-            <button onClick={() => store.setStep(3)} className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#FF007F] hover:text-white transition-colors">Back to sizes</button>
-          </div>
-          {printLocations ? (
-            <>
-              <PrintLocationSelector locations={printLocations} />
-              <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#555] mt-4">Select print locations and colour counts, or skip if no printing required.</p>
-              <div className="mt-8 flex justify-between">
-                <button onClick={() => store.setStep(3)} className="border border-[#333] text-[#888] font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-[#666] hover:text-white transition-all">Back</button>
-                <button onClick={() => store.setStep(5)} className="bg-[#FF007F] text-white font-mono text-[11px] uppercase tracking-[0.15em] px-6 py-2.5 hover:bg-[#e60072] transition-colors">Continue to Design</button>
-              </div>
-            </>
-          ) : <LoadingSpinner />}
-        </section>
-      )}
-
-      {store.step === 5 && (
-        <section>
-          {store.printLocations.length === 0 ? (
-            <div className="bg-[#111] border border-[#222] p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-5 border border-[#333] flex items-center justify-center">
-                <svg className="w-8 h-8 text-[#555]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="font-display font-black text-xl text-white uppercase tracking-tight mb-2">No Printing Required</h3>
-              <p className="font-mono text-[10px] text-[#555] mb-6 max-w-sm mx-auto">
-                You have not selected any print locations in Step 4. You can skip designing and review your order.
-              </p>
-              <div className="flex justify-center gap-3">
-                <button onClick={() => store.setStep(4)} className="border border-[#333] text-[#888] font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-[#666] hover:text-white transition-all">Back</button>
-                <button onClick={() => store.setStep(6)} className="bg-[#FF007F] text-white font-mono text-[11px] uppercase tracking-[0.15em] px-6 py-2.5 hover:bg-[#e60072] transition-colors">Continue to Summary</button>
-              </div>
-            </div>
-          ) : (
-            <DesignStudioAdapter
-              productId={store.productId!}
-              productName={store.productName}
-              colourName={store.colourName}
-              colourImage={config?.colours.find(c => c.name === store.colourName)?.image || null}
-              selectedLocations={store.printLocations}
-              designId={store.designId}
-              onSave={(id) => {
-                store.setDesignId(id);
-                store.setStep(6);
-              }}
-              onBack={() => store.setStep(4)}
-            />
           )}
         </section>
       )}
 
+      {/* STEP 4: Size & Quantity Matrix configuration per selected garment colour */}
+      {store.step === 4 && (
+        <section className="step-enter">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="font-display font-black text-xl uppercase tracking-tighter text-on-surface">
+              Sizes &amp; Quantities
+            </h2>
+            <button
+              onClick={() => store.setStep(3)}
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-magenta hover:text-on-surface transition-colors"
+            >
+              Back to colours
+            </button>
+          </div>
+          {loadingVariants ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <SizeQuantityGrid
+                selectedColours={store.selectedColours}
+                sizes={getProductSizes()}
+                minimumOrderQuantity={minQty}
+                currency={config?.product.currency || 'GBP'}
+                onQuantityChange={(col, sz, qty, varId) => {
+                  // Map size selection to correct color variant ID
+                  const matchVar = variants?.find((v) => v.colourName === col && v.size === sz);
+                  store.setColourQuantity(col, sz, qty, matchVar?._id || varId);
+                }}
+              />
+              <div className="mt-10 flex justify-between">
+                <button onClick={() => store.setStep(3)} className="btn-ghost-dark text-sm">
+                  Back
+                </button>
+                <button
+                  onClick={() => {
+                    if (!meetsMinimum) {
+                      store.showAlert(`Minimum order quantity is ${minQty} units. Your current total is ${totalQuantity} units. Please adjust your sizes and quantities.`, "Minimum Quantity Required");
+                    } else {
+                      store.setStep(5);
+                    }
+                  }}
+                  className="btn-magenta text-sm"
+                >
+                  Continue to Printing
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
-      {store.step === 6 && sizesData && (
-        <section>
-          <h2 className="font-display font-black text-xl uppercase tracking-tighter text-white mb-6">Order Summary</h2>
+      {/* STEP 5: Print Location Selection using garment position SVGs */}
+      {store.step === 5 && (
+        <section className="step-enter">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="font-display font-black text-xl uppercase tracking-tighter text-on-surface">
+              Print Positions
+            </h2>
+            <button
+              onClick={() => store.setStep(4)}
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-magenta hover:text-on-surface transition-colors"
+            >
+              Back to sizes
+            </button>
+          </div>
+          {loadingLocations ? (
+            <LoadingSpinner />
+          ) : (
+            <>
+              <PrintLocationSelector locations={printLocations || []} />
+              <div className="mt-10 flex justify-between">
+                <button onClick={() => store.setStep(4)} className="btn-ghost-dark text-sm">
+                  Back
+                </button>
+                <button
+                  onClick={() => store.setStep(store.selectedLocations.length > 0 ? 6 : 7)}
+                  className="btn-magenta text-sm"
+                >
+                  {store.selectedLocations.length > 0 ? 'Continue to Print Colours' : 'Skip to Summary'}
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-[#111] border border-[#222] p-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#FF007F] mb-1">Order Details</p>
-              <h3 className="font-display font-black text-white uppercase tracking-tight text-base mb-1">{store.productName}</h3>
-              <p className="font-mono text-[11px] text-[#555] mb-4">Colour: {store.colourName}</p>
-              {store.printLocations.length > 0 && (
-                <div className="mb-4">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555] mb-2">Print locations &amp; Designs:</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {store.printLocations.map((l) => {
-                      const locationDesign = (designData?.configuration as any)?.locations?.[l.locationId];
-                      return (
-                        <div key={l.locationId} className="border border-[#222] bg-[#0d0d0d] p-3 flex flex-col gap-2">
-                          <div className="flex justify-between items-start">
-                            <span className="font-display font-bold text-white text-xs uppercase tracking-tight">{l.locationName}</span>
-                            <span className="font-mono text-[9px] uppercase text-[#FF007F]">{l.colourCount} Col</span>
+      {/* STEP 6: Print Colour Count configuration separately for each selected location */}
+      {store.step === 6 && (
+        <section className="step-enter">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="font-display font-black text-xl uppercase tracking-tighter text-on-surface">
+              Print Colours count
+            </h2>
+            <button
+              onClick={() => store.setStep(5)}
+              className="font-mono text-[10px] uppercase tracking-[0.15em] text-magenta hover:text-on-surface transition-colors"
+            >
+              Back to positions
+            </button>
+          </div>
+          <PrintColourCountGrid />
+          <div className="mt-10 flex justify-between">
+            <button onClick={() => store.setStep(5)} className="btn-ghost-dark text-sm">
+              Back
+            </button>
+            <button onClick={() => store.setStep(7)} className="btn-magenta text-sm">
+              Continue to Summary
+            </button>
+          </div>
+        </section>
+      )}
+
+      {/* STEP 7: Order Summary (Bypass online studio completely) */}
+      {store.step === 7 && (
+        <section className="step-enter">
+          <h2 className="font-display font-black text-xl uppercase tracking-tighter text-on-surface mb-6">
+            Order Review
+          </h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            {/* Summary details */}
+            <div className="space-y-6">
+              <div className="bg-white border border-outline-variant p-6 rounded-2xl shadow-step">
+                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-magenta mb-1 block">
+                  Product
+                </span>
+                <h3 className="font-display font-black text-on-surface uppercase tracking-tight text-base mb-3">
+                  {store.productName}
+                </h3>
+
+                {/* Colours and sizes breakdown */}
+                <div className="space-y-4">
+                  {store.selectedColours.map((colour) => {
+                    const totalQty = Object.values(colour.sizeQuantities).reduce((a, b) => a + b, 0);
+                    return (
+                      <div key={colour.colourName} className="border-t border-outline-variant/60 pt-3 first:border-0 first:pt-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="w-3.5 h-3.5 rounded-full border border-outline"
+                              style={{ backgroundColor: colour.colourHex || '#ddd' }}
+                            />
+                            <span className="font-display font-bold text-xs uppercase text-on-surface">
+                              {colour.colourName}
+                            </span>
                           </div>
-                          {locationDesign?.previewUrl ? (
-                            <div className="relative border border-[#222] bg-[#151515] h-28 overflow-hidden flex items-center justify-center">
-                              <img src={locationDesign.previewUrl} alt={l.locationName} className="max-w-full max-h-full object-contain" />
-                            </div>
-                          ) : (
-                            <div className="relative border border-[#222] bg-[#151515] h-28 flex items-center justify-center text-[#333] font-mono text-[9px] uppercase tracking-wider">
-                              No Design Created
-                            </div>
-                          )}
+                          <span className="font-mono text-[10px] text-on-surface-variant font-semibold">
+                            {totalQty} units
+                          </span>
                         </div>
-                      );
-                    })}
+                        {/* Sizes list */}
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(colour.sizeQuantities)
+                            .filter(([, qty]) => qty > 0)
+                            .map(([sz, qty]) => (
+                              <span key={sz} className="font-mono text-[10px] bg-surface-container-low px-2 py-1 border border-outline-variant text-on-surface font-medium">
+                                {sz}: {qty}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Print positions summary */}
+              {store.selectedLocations.length > 0 && (
+                <div className="bg-white border border-outline-variant p-6 rounded-2xl shadow-step">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-magenta mb-3 block">
+                    Print customisations
+                  </span>
+                  <div className="space-y-3">
+                    {store.selectedLocations.map((loc) => (
+                      <div key={loc.locationId} className="flex justify-between items-center py-2 border-b border-outline-variant/60 last:border-0 last:pb-0">
+                        <span className="font-display font-bold text-xs uppercase text-on-surface">
+                          {loc.locationName}
+                        </span>
+                        <span className="font-mono text-[10px] bg-primary-container text-magenta px-2.5 py-0.5 rounded font-bold">
+                          {loc.colourCount} Color{loc.colourCount > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
-              <table className="w-full mt-2">
-                <thead>
-                  <tr className="border-b border-[#333]">
-                    <th className="text-left py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]">Size</th>
-                    <th className="text-right py-2 font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]">Qty</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sizesData.sizes.filter((s) => (store.quantities[s.size] || 0) > 0).map((s) => (
-                    <tr key={s.size} className="border-b border-[#1a1a1a]">
-                      <td className="py-2 font-display font-bold text-white text-sm uppercase">{s.size}</td>
-                      <td className="text-right py-2 font-mono text-[11px] text-[#aaa]">{store.quantities[s.size]}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t border-[#333]">
-                    <td className="py-3 font-mono text-[10px] uppercase tracking-[0.15em] text-[#666]">Total</td>
-                    <td className="text-right py-3 font-display font-black text-white">{total}</td>
-                  </tr>
-                </tfoot>
-              </table>
             </div>
 
-            {pricingMutation.isPending && <LoadingSpinner label="Calculating price..." />}
-            {store.pricing && <PricingSummary pricing={store.pricing} />}
-          </div>
+            {/* Calculations & pricing breakdown */}
+            <div className="space-y-6">
+              {pricingMutation.isPending && <LoadingSpinner label="Calculating estimate..." />}
+              {store.pricing && <PricingSummary pricing={store.pricing} />}
 
-          {validateMutation.data && !validateMutation.data.valid && (
-            <div className="mt-4 p-4 bg-red-950/50 border border-red-800" role="alert">
-              <ul className="font-mono text-[11px] text-red-400 list-disc list-inside space-y-1">
-                {validateMutation.data.errors.map((e, i) => <li key={i}>{e}</li>)}
-              </ul>
+              {addError && <p className="font-mono text-[11px] text-error">{addError}</p>}
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => addToCartMutation.mutate()}
+                  disabled={addToCartMutation.isPending || totalQuantity < minQty}
+                  className="btn-accent py-4 font-display font-black text-sm uppercase tracking-wider"
+                >
+                  {addToCartMutation.isPending ? 'Adding to Cart...' : 'Add to Shopping Cart'}
+                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => store.setStep(store.selectedLocations.length > 0 ? 6 : 5)}
+                    className="btn-outline flex-1 text-xs py-3"
+                  >
+                    Modify configuration
+                  </button>
+                  <button onClick={store.reset} className="btn-outline flex-1 text-xs py-3 text-error border-error/50 hover:bg-error hover:text-white">
+                    Cancel run
+                  </button>
+                </div>
+              </div>
             </div>
-          )}
-
-          {addError && <p className="mt-4 font-mono text-[11px] text-red-400">{addError}</p>}
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button onClick={() => store.setStep(5)} className="border border-[#333] text-[#888] font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-[#666] hover:text-white transition-all">Back</button>
-            <button onClick={() => validateMutation.mutate()} disabled={validateMutation.isPending} className="border border-[#333] text-[#888] font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-[#666] hover:text-white transition-all disabled:opacity-30">
-              Validate
-            </button>
-            <button onClick={() => calculatePricing()} disabled={pricingMutation.isPending} className="border border-[#333] text-[#888] font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-[#666] hover:text-white transition-all disabled:opacity-30">
-              Recalculate Price
-            </button>
-            <button onClick={() => addToCartMutation.mutate()} disabled={addToCartMutation.isPending || total < minQty}
-              className="bg-[#FF007F] text-white font-mono text-[11px] uppercase tracking-[0.15em] px-6 py-2.5 hover:bg-[#e60072] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-              {addToCartMutation.isPending ? 'Adding...' : 'Add to Cart'}
-            </button>
-            <button onClick={store.reset} className="font-mono text-[10px] uppercase tracking-[0.1em] text-[#444] hover:text-[#888] transition-colors">Start Over</button>
           </div>
         </section>
+      )}
+
+      {/* Custom styled store alert modal popup */}
+      {store.alertMessage && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white border-2 border-black max-w-sm w-full p-6 text-left shadow-2xl relative animate-scale-in">
+            {/* Close button */}
+            <button
+              onClick={store.closeAlert}
+              className="absolute top-4 right-4 p-1 text-neutral-400 hover:text-black transition-colors"
+              aria-label="Close dialog"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <h3 className="font-display font-black text-xl uppercase text-black tracking-tight mb-3 pr-8 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 bg-magenta inline-block animate-pulse" />
+              {store.alertTitle || 'Notice'}
+            </h3>
+
+            <p className="font-mono text-[11px] text-neutral-600 mb-6 leading-relaxed">
+              {store.alertMessage}
+            </p>
+
+            <button
+              onClick={store.closeAlert}
+              className="bg-black text-white px-5 py-3 font-mono text-[11px] uppercase tracking-[0.15em] hover:bg-magenta hover:text-black transition-colors w-full text-center font-bold"
+            >
+              Understand
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

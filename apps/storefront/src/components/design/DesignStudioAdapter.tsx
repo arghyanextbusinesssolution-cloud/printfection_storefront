@@ -151,6 +151,7 @@ export function DesignStudioAdapter({
   // New element creation states
   const [newText, setNewText] = useState('My Custom Print');
   const [newColor, setNewColor] = useState('#FF007F');
+  const [newFontSize, setNewFontSize] = useState(14);
   const [saving, setSaving] = useState(false);
 
   const stageRef = useRef<any>(null);
@@ -191,7 +192,23 @@ export function DesignStudioAdapter({
     }
   }, [selectedId, elements]);
 
-  // Handle stage clicks to deselect
+  // Keyboard shortcut: Delete/Backspace removes selected element
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
+        // Only fire if not typing in an input/textarea
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+          e.preventDefault();
+          setElements(prev => prev.filter(el => el.id !== selectedId));
+          setSelectedId(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedId]);
+
   const handleStageClick = (e: any) => {
     if (e.target === e.target.getStage() || e.target.name() === 'background') {
       setSelectedId(null);
@@ -203,13 +220,13 @@ export function DesignStudioAdapter({
     const el: CanvasElement = {
       id: 'text_' + Date.now(),
       type: 'text',
-      x: 130,
-      y: 200,
-      width: 150,
-      height: 30,
+      x: 155,
+      y: 225,
+      width: 90,
+      height: 20,
       rotation: 0,
       text: newText,
-      fontSize: 24,
+      fontSize: newFontSize,
       fill: newColor,
     };
     setElements([...elements, el]);
@@ -225,10 +242,10 @@ export function DesignStudioAdapter({
       const el: CanvasElement = {
         id: 'image_' + Date.now(),
         type: 'image',
-        x: 120,
-        y: 180,
-        width: 160,
-        height: 160,
+        x: 155,
+        y: 185,
+        width: 80,
+        height: 80,
         rotation: 0,
         src: reader.result as string,
       };
@@ -305,9 +322,9 @@ export function DesignStudioAdapter({
   };
 
   return (
-    <div className="bg-[#111] border border-[#222] p-6 lg:p-8">
+    <div className="bg-white border border-neutral-200 p-6 lg:p-8">
       {/* Printable Area Location Tabs */}
-      <div className="flex border-b border-[#222] mb-6 overflow-x-auto gap-2">
+      <div className="flex border-b border-neutral-200 mb-6 overflow-x-auto gap-2">
         {selectedLocations.map((loc) => {
           const isActive = activeTab === loc.locationId;
           return (
@@ -319,8 +336,8 @@ export function DesignStudioAdapter({
               }}
               className={`font-mono text-[11px] uppercase tracking-[0.15em] px-4 py-3 border-b-2 transition-all whitespace-nowrap ${
                 isActive
-                  ? 'border-[#FF007F] text-white bg-[#1a1a1a]/50'
-                  : 'border-transparent text-[#666] hover:text-white'
+                  ? 'border-black text-black font-bold'
+                  : 'border-transparent text-neutral-400 hover:text-black'
               }`}
             >
               {loc.locationName} ({loc.colourCount} Col)
@@ -333,33 +350,53 @@ export function DesignStudioAdapter({
         {/* Left Toolbar Controls */}
         <div className="lg:col-span-4 space-y-6">
           <div>
-            <h3 className="font-display font-black text-lg text-white uppercase tracking-tight mb-2">Design Tools</h3>
-            <p className="font-mono text-[10px] text-[#555] uppercase tracking-wider">
+            <h3 className="font-display font-black text-lg text-black uppercase tracking-tight mb-2">Design Tools</h3>
+            <p className="font-mono text-[10px] text-neutral-400 uppercase tracking-wider">
               Garment: {productName} ({colourName})
             </p>
           </div>
 
           {/* Add Text Element */}
-          <div className="border border-[#222] bg-[#0d0d0d] p-4">
-            <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#FF007F] mb-3">Add Custom Text</h4>
+          <div className="border border-neutral-200 bg-neutral-50 p-4">
+            <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-magenta mb-3">Add Custom Text</h4>
             <div className="space-y-3">
               <input
                 type="text"
                 value={newText}
                 onChange={(e) => setNewText(e.target.value)}
                 placeholder="Enter custom text"
-                className="w-full bg-[#111] border border-[#333] text-white font-mono text-[11px] p-2 focus:outline-none focus:border-[#FF007F] transition-colors"
+                className="w-full bg-white border border-neutral-300 text-black font-mono text-[11px] p-2 focus:outline-none focus:border-black transition-colors placeholder-neutral-300"
               />
+              {/* Font size slider */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400">Font Size</span>
+                  <span className="font-mono text-[10px] font-bold text-black">{newFontSize}px</span>
+                </div>
+                <input
+                  type="range"
+                  min={8}
+                  max={48}
+                  step={1}
+                  value={newFontSize}
+                  onChange={(e) => setNewFontSize(Number(e.target.value))}
+                  className="w-full h-1.5 accent-black cursor-pointer"
+                />
+                <div className="flex justify-between">
+                  <span className="font-mono text-[8px] text-neutral-300">8</span>
+                  <span className="font-mono text-[8px] text-neutral-300">48</span>
+                </div>
+              </div>
               <div className="flex gap-2">
                 <input
                   type="color"
                   value={newColor}
                   onChange={(e) => setNewColor(e.target.value)}
-                  className="w-10 h-8 bg-transparent border border-[#333] cursor-pointer"
+                  className="w-10 h-8 bg-white border border-neutral-300 cursor-pointer"
                 />
                 <button 
                   onClick={handleAddText}
-                  className="flex-1 bg-white hover:bg-neutral-200 text-black font-mono text-[10px] uppercase tracking-[0.15em] py-2 transition-colors"
+                  className="flex-1 bg-black hover:bg-neutral-800 text-white font-mono text-[10px] uppercase tracking-[0.15em] py-2 transition-colors"
                 >
                   Place Text
                 </button>
@@ -368,13 +405,13 @@ export function DesignStudioAdapter({
           </div>
 
           {/* Add Logo / Upload Artwork */}
-          <div className="border border-[#222] bg-[#0d0d0d] p-4">
-            <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#FF007F] mb-3">Upload Artwork</h4>
-            <label className="block w-full border border-dashed border-[#333] hover:border-[#FF007F] transition-colors text-center p-6 cursor-pointer group">
-              <svg className="w-8 h-8 text-[#444] group-hover:text-[#FF007F] mx-auto mb-2 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="border border-neutral-200 bg-neutral-50 p-4">
+            <h4 className="font-mono text-[10px] uppercase tracking-[0.15em] text-magenta mb-3">Upload Artwork</h4>
+            <label className="block w-full border border-dashed border-neutral-300 hover:border-black transition-colors text-center p-6 cursor-pointer group">
+              <svg className="w-8 h-8 text-neutral-300 group-hover:text-black mx-auto mb-2 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-[#666] group-hover:text-white transition-colors block">
+              <span className="font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-400 group-hover:text-black transition-colors block">
                 Select Logo Image
               </span>
               <input
@@ -386,16 +423,56 @@ export function DesignStudioAdapter({
             </label>
           </div>
 
-          {/* Transform & Delete Selected */}
-          {selectedId && (
-            <div className="border border-red-900/40 bg-red-950/10 p-4 flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-red-400">Element Selected</span>
-              <button
-                onClick={handleDeleteSelected}
-                className="bg-red-900/80 hover:bg-red-800 text-white font-mono text-[9px] uppercase tracking-[0.15em] px-3 py-1.5 transition-colors"
-              >
-                Delete [X]
-              </button>
+          {/* Placed Elements List with individual delete buttons */}
+          {elements.length > 0 && (
+            <div className="border border-neutral-200 bg-neutral-50 p-3">
+              <h4 className="font-mono text-[9px] uppercase tracking-[0.15em] text-neutral-400 mb-2">Placed Elements</h4>
+              <div className="divide-y divide-neutral-100">
+                {elements.map((el, i) => (
+                  <div
+                    key={el.id}
+                    className={`flex items-center justify-between py-2 gap-2 cursor-pointer group ${
+                      selectedId === el.id ? 'opacity-100' : 'opacity-70 hover:opacity-100'
+                    }`}
+                    onClick={() => setSelectedId(el.id)}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {/* Icon */}
+                      <span className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded ${
+                        selectedId === el.id ? 'bg-black text-white' : 'bg-neutral-200 text-neutral-500'
+                      }`}>
+                        {el.type === 'text' ? (
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h8m-8 6h16" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                      </span>
+                      <span className="font-mono text-[10px] text-black truncate">
+                        {el.type === 'text' ? `"${el.text?.slice(0, 18)}${(el.text?.length ?? 0) > 18 ? '…' : ''}"` : `Artwork ${i + 1}`}
+                      </span>
+                    </div>
+                    {/* Delete button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setElements(prev => prev.filter(item => item.id !== el.id));
+                        if (selectedId === el.id) setSelectedId(null);
+                      }}
+                      className="flex-shrink-0 w-6 h-6 bg-red-100 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors rounded"
+                      title="Delete"
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <p className="font-mono text-[8px] text-neutral-300 mt-2 uppercase tracking-[0.1em]">Click row to select · Del key to remove</p>
             </div>
           )}
         </div>
@@ -432,14 +509,14 @@ export function DesignStudioAdapter({
 
                 {/* Printable Boundary Box */}
                 <KonvaRect
-                  x={100}
-                  y={120}
-                  width={200}
-                  height={260}
+                  x={148}
+                  y={165}
+                  width={104}
+                  height={140}
                   stroke="#FF007F"
-                  strokeWidth={1}
-                  dash={[4, 4]}
-                  opacity={0.4}
+                  strokeWidth={2}
+                  dash={[5, 3]}
+                  opacity={0.9}
                   listening={false}
                 />
 
@@ -470,8 +547,8 @@ export function DesignStudioAdapter({
                 <Transformer
                   ref={transformerRef}
                   boundBoxFunc={(oldBox, newBox) => {
-                    // Limit resize
-                    if (newBox.width < 5 || newBox.height < 5) {
+                    // Allow scaling down to 2px minimum
+                    if (newBox.width < 2 || newBox.height < 2) {
                       return oldBox;
                     }
                     return newBox;
@@ -486,24 +563,24 @@ export function DesignStudioAdapter({
             </span>
           </div>
 
-          <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.1em] text-[#444] text-center max-w-sm">
+          <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400 text-center max-w-sm">
             Drag, resize, or rotate elements on the garment. Elements will stay linked to your selected print area.
           </p>
         </div>
       </div>
 
       {/* Save / Back navigation */}
-      <div className="mt-8 pt-6 border-t border-[#222] flex justify-between">
+      <div className="mt-8 pt-6 border-t border-neutral-200 flex justify-between">
         <button
           onClick={onBack}
-          className="border border-[#333] text-[#888] font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-[#666] hover:text-white transition-all"
+          className="border border-neutral-300 text-neutral-500 font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-black hover:text-black transition-all"
         >
           Back
         </button>
         <button
           onClick={handleSaveAll}
           disabled={saving}
-          className="bg-[#FF007F] text-white font-mono text-[11px] uppercase tracking-[0.15em] px-8 py-3 hover:bg-[#e60072] transition-colors disabled:opacity-30 flex items-center gap-2"
+          className="bg-black text-white font-mono text-[11px] uppercase tracking-[0.15em] px-8 py-3 hover:bg-neutral-800 transition-colors disabled:opacity-30 flex items-center gap-2"
         >
           {saving ? <LoadingSpinner label="Saving..." /> : 'Confirm & Review Order →'}
         </button>

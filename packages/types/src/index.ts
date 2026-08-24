@@ -94,6 +94,38 @@ export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | 'not_re
 
 export type QuoteStatus = 'pending' | 'reviewed' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'converted';
 
+/** A single garment colour entry within a unified bulk order */
+export interface BulkColourConfig {
+  colourName: string;
+  colourHex?: string;
+  colourImage?: string;
+  /** Size to quantity mapping for this colour */
+  variants: BulkOrderVariantInput[];
+}
+
+/** A single artwork file reference attached to a bulk order */
+export interface BulkArtworkRef {
+  /** The garment colour this artwork is for (undefined = applies to all) */
+  colourName?: string;
+  /** The print location ID this artwork is for */
+  locationId?: string;
+  /** Publicly accessible URL of the uploaded file */
+  url: string;
+  /** Original filename of the uploaded file */
+  filename: string;
+}
+
+/** Unified bulk order cart item */
+export interface BulkOrderCartItem {
+  isBulkOrder: true;
+  productId: string;
+  productName: string;
+  colours: BulkColourConfig[];
+  printLocations: PrintLocationInput[];
+  artworks: BulkArtworkRef[];
+  pricingSnapshot?: PricingBreakdown;
+}
+
 export interface CartItemConfig {
   productId: string;
   productName: string;
@@ -103,6 +135,9 @@ export interface CartItemConfig {
   printLocations?: PrintLocationInput[];
   designId?: string;
   pricingSnapshot?: PricingBreakdown;
+  isBulkOrder?: boolean;
+  colours?: BulkColourConfig[];
+  artworks?: BulkArtworkRef[];
 }
 
 export interface CustomerInfo {

@@ -37,6 +37,9 @@ interface OrderItemInput {
   variants: { variantId: string; size: string; quantity: number }[];
   printLocations?: { locationId: string; colourCount: number }[];
   designId?: string;
+  isBulkOrder?: boolean;
+  colours?: any[];
+  artworks?: any[];
 }
 
 async function findOrCreateCustomer(input: CustomerInput) {
@@ -67,9 +70,15 @@ async function enrichOrderItems(items: OrderItemInput[]) {
   };
 
   for (const item of items) {
+    // Flatten variants from nested colours if unified bulk order
+    let flatVariants = item.variants;
+    if (item.isBulkOrder && item.colours) {
+      flatVariants = item.colours.flatMap((c) => c.variants);
+    }
+
     const pricing = await calculatePricing({
       productId: item.productId,
-      variants: item.variants,
+      variants: flatVariants,
       printLocations: item.printLocations,
     });
 
@@ -86,7 +95,7 @@ async function enrichOrderItems(items: OrderItemInput[]) {
     };
 
     const variantsWithPrice = await Promise.all(
-      item.variants
+      flatVariants
         .filter((v) => v.quantity > 0)
         .map(async (v) => {
           const variant = await ProductVariant.findById(v.variantId);
@@ -94,12 +103,31 @@ async function enrichOrderItems(items: OrderItemInput[]) {
         })
     );
 
+    const coloursEnriched = item.colours
+      ? await Promise.all(
+          item.colours.map(async (c: any) => {
+            const variantsEnriched = await Promise.all(
+              c.variants.map(async (v: any) => {
+                const variant = await ProductVariant.findById(v.variantId);
+                return { ...v, unitPrice: variant?.price ?? 0 };
+              })
+            );
+            return {
+              ...c,
+              variants: variantsEnriched,
+            };
+          })
+        )
+      : undefined;
+
     const printLocations = await Promise.all(
       (item.printLocations || []).map(async (pl) => {
-        const location = await PrintLocation.findById(pl.locationId);
+        // Support both code strings (e.g. "FULL_BACK") and legacy ObjectIds
+        const location = await PrintLocation.findOne({ code: pl.locationId })
+          || await PrintLocation.findById(pl.locationId).catch(() => null);
         return {
           locationId: pl.locationId,
-          locationName: location?.name,
+          locationName: location?.name || pl.locationName,
           colourCount: pl.colourCount,
         };
       })
@@ -108,12 +136,15 @@ async function enrichOrderItems(items: OrderItemInput[]) {
     enriched.push({
       productId: item.productId,
       productName: item.productName,
-      colourName: item.colourName,
+      colourName: item.colourName || '',
       colourHex: item.colourHex,
       variants: variantsWithPrice,
       printLocations,
       designId: item.designId,
       pricingSnapshot: pricing,
+      isBulkOrder: item.isBulkOrder || false,
+      colours: coloursEnriched,
+      artworks: item.artworks,
     });
   }
 
@@ -190,6 +221,9 @@ export async function createOrderFromCart(input: {
     variants: item.variants,
     printLocations: item.printLocations,
     designId: item.designId,
+    isBulkOrder: item.isBulkOrder,
+    colours: item.colours,
+    artworks: item.artworks,
   }));
 
   return createOrderFromItems({ ...input, items, sessionId: input.sessionId, paymentMethod: input.paymentMethod });
@@ -252,6 +286,9 @@ export async function createQuoteFromCart(input: {
     variants: item.variants,
     printLocations: item.printLocations,
     designId: item.designId,
+    isBulkOrder: item.isBulkOrder,
+    colours: item.colours,
+    artworks: item.artworks,
   }));
 
   return createQuote({ ...input, items, sessionId: input.sessionId });

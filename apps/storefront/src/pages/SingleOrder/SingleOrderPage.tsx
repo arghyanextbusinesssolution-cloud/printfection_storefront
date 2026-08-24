@@ -82,9 +82,9 @@ export function SingleOrderPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#FF007F] mb-2">One-Off Custom</p>
-        <h1 className="text-3xl font-display font-black uppercase tracking-tighter text-white">Single Piece Order</h1>
-        <p className="mt-2 text-[#777] font-mono text-xs uppercase tracking-widest">
+        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-magenta mb-2">One-Off Custom</p>
+        <h1 className="text-3xl font-display font-black uppercase tracking-tighter text-black">Single Piece Order</h1>
+        <p className="mt-2 text-neutral-400 font-mono text-xs uppercase tracking-widest">
           Order just one custom-printed garment — no minimum quantity
         </p>
       </div>
@@ -99,16 +99,16 @@ export function SingleOrderPage() {
             <div key={s} className="flex items-center flex-1 last:flex-none">
               <div className="flex flex-col items-center">
                 <div className={`w-8 h-8 flex items-center justify-center font-display font-black text-sm transition-all ${
-                  done ? 'bg-[#FF007F] text-white' : active ? 'bg-white text-black' : 'bg-[#1a1a1a] text-[#444] border border-[#333]'
+                  done ? 'bg-magenta text-white' : active ? 'bg-black text-white' : 'bg-neutral-100 text-neutral-400 border border-neutral-200'
                 }`}>
                   {done ? '✓' : s}
                 </div>
-                <span className={`font-mono text-[9px] uppercase tracking-[0.1em] mt-1.5 ${active ? 'text-white' : 'text-[#444]'}`}>
+                <span className={`font-mono text-[9px] uppercase tracking-[0.1em] mt-1.5 ${active ? 'text-black font-bold' : 'text-neutral-400'}`}>
                   {label}
                 </span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`flex-1 h-px mx-2 mb-5 transition-colors ${done ? 'bg-[#FF007F]' : 'bg-[#222]'}`} />
+                <div className={`flex-1 h-px mx-2 mb-5 transition-colors ${done ? 'bg-magenta' : 'bg-neutral-200'}`} />
               )}
             </div>
           );
@@ -231,7 +231,7 @@ export function SingleOrderPage() {
               {/* Size selector */}
               {selectedColour && (
                 <>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#555] mb-4">Choose Size</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-4">Choose Size</p>
                   <div className="flex flex-wrap gap-3 mb-8">
                     {sizesForColour.sort((a, b) => {
                       const order = ['XS','S','M','L','XL','2XL','3XL'];
@@ -246,10 +246,10 @@ export function SingleOrderPage() {
                           disabled={outOfStock}
                           className={`w-16 h-16 font-display font-bold text-sm border-2 transition-all ${
                             isSelV
-                              ? 'bg-[#FF007F] text-white border-[#FF007F]'
+                              ? 'bg-magenta text-white border-magenta'
                               : outOfStock
-                              ? 'bg-transparent text-[#333] border-[#1a1a1a] cursor-not-allowed line-through'
-                              : 'bg-transparent text-[#888] border-[#333] hover:border-[#FF007F] hover:text-white'
+                              ? 'bg-neutral-50 text-neutral-300 border-neutral-200 cursor-not-allowed line-through'
+                              : 'bg-white text-neutral-600 border-neutral-300 hover:border-black hover:bg-neutral-100 hover:text-black'
                           }`}
                         >
                           {v.size}
@@ -262,21 +262,21 @@ export function SingleOrderPage() {
 
               {/* Price callout */}
               {selectedVariant && (
-                <div className="bg-[#111] border border-[#222] p-4 mb-6 flex items-center justify-between">
+                <div className="bg-neutral-50 border border-neutral-200 p-4 mb-6 flex items-center justify-between">
                   <div>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]">Single piece price</p>
-                    <p className="font-display font-black text-2xl text-white mt-1">{formatCurrency(selectedVariant.price, selectedProduct.currency)}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-neutral-400">Single piece price</p>
+                    <p className="font-display font-black text-2xl text-black mt-1">{formatCurrency(selectedVariant.price, selectedProduct.currency)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-[#555] mb-1">In stock</p>
-                    <p className={`font-mono text-[11px] ${selectedVariant.stock > 10 ? 'text-[#22c55e]' : 'text-orange-400'}`}>
+                    <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400 mb-1">In stock</p>
+                    <p className={`font-mono text-[11px] font-bold ${selectedVariant.stock > 10 ? 'text-green-600' : 'text-orange-500'}`}>
                       {selectedVariant.stock} available
                     </p>
                   </div>
                 </div>
               )}
 
-              <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-[#444] mb-6">
+              <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400 mb-6">
                 {!selectedColour && '← Select a colour above'}
                 {selectedColour && !selectedVariant && '← Now pick a size'}
               </p>
@@ -284,11 +284,14 @@ export function SingleOrderPage() {
           )}
 
           <div className="mt-4 flex justify-between">
-            <button onClick={() => setStep(1)} className="border border-[#333] text-[#888] font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-[#666] hover:text-white transition-all">Back</button>
+            <button
+              onClick={() => setStep(1)}
+              className="border border-neutral-300 text-neutral-500 font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-black hover:text-black transition-all"
+            >Back</button>
             <button
               onClick={() => setStep(3)}
               disabled={!selectedVariant}
-              className="bg-[#FF007F] text-white font-mono text-[11px] uppercase tracking-[0.15em] px-8 py-3 hover:bg-[#e60072] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="bg-black text-white font-mono text-[11px] uppercase tracking-[0.15em] px-8 py-3 hover:bg-neutral-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Design Your Print →
             </button>
@@ -329,75 +332,82 @@ export function SingleOrderPage() {
       {/* ── STEP 4: Review & Add to Cart ── */}
       {step === 4 && selectedProduct && selectedVariant && (
         <section>
-          <h2 className="font-display font-black text-xl uppercase tracking-tighter text-white mb-6">Review Your Order</h2>
+          <h2 className="font-display font-black text-xl uppercase tracking-tighter text-black mb-6">Review Your Order</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {/* Product card */}
-            <div className="bg-[#111] border border-[#222] overflow-hidden">
+            <div className="bg-white border border-neutral-200 overflow-hidden">
               {designPreview ? (
-                <img src={designPreview} alt="Your custom design" className="w-full h-48 object-contain bg-[#0d0d0d] p-2" />
+                <img src={designPreview} alt="Your custom design" className="w-full h-48 object-contain bg-neutral-50 p-2" />
               ) : selectedVariant.image ? (
                 <img src={selectedVariant.image} alt={selectedProduct.name} className="w-full h-48 object-cover" />
               ) : null}
-              <div className="p-4">
-                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#FF007F] mb-1">{selectedProduct.brandName}</p>
-                <h3 className="font-display font-bold text-white uppercase tracking-tight">{selectedProduct.name}</h3>
-                <p className="font-mono text-[10px] text-[#555] mt-1">{selectedVariant.colourName} / {selectedVariant.size}</p>
+              <div className="p-4 border-t border-neutral-100">
+                <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-magenta mb-1">{selectedProduct.brandName}</p>
+                <h3 className="font-display font-bold text-black uppercase tracking-tight">{selectedProduct.name}</h3>
+                <p className="font-mono text-[10px] text-neutral-400 mt-1">{selectedVariant.colourName} / {selectedVariant.size}</p>
                 {designId && (
-                  <p className="font-mono text-[9px] text-[#22c55e] mt-2 uppercase tracking-[0.1em]">✓ Custom design attached</p>
+                  <p className="font-mono text-[9px] text-green-600 mt-2 uppercase tracking-[0.1em]">✓ Custom design attached</p>
                 )}
               </div>
             </div>
 
             {/* Order summary */}
-            <div className="bg-[#111] border border-[#222] p-5 flex flex-col justify-between">
+            <div className="bg-white border border-neutral-200 p-5 flex flex-col justify-between">
               <div className="space-y-4">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555] mb-2">Quantity</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-neutral-400 mb-2">Quantity</p>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-9 h-9 border border-[#333] text-white font-display font-bold text-lg hover:border-[#FF007F] transition-colors flex items-center justify-center">−</button>
-                    <span className="font-display font-black text-2xl text-white w-8 text-center">{quantity}</span>
-                    <button onClick={() => setQuantity(Math.min(selectedVariant.stock, quantity + 1))}
-                      className="w-9 h-9 border border-[#333] text-white font-display font-bold text-lg hover:border-[#FF007F] transition-colors flex items-center justify-center">+</button>
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-9 h-9 border border-neutral-300 text-black font-display font-bold text-lg hover:border-black hover:bg-black hover:text-white transition-colors flex items-center justify-center"
+                    >−</button>
+                    <span className="font-display font-black text-2xl text-black w-8 text-center">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(Math.min(selectedVariant.stock, quantity + 1))}
+                      className="w-9 h-9 border border-neutral-300 text-black font-display font-bold text-lg hover:border-black hover:bg-black hover:text-white transition-colors flex items-center justify-center"
+                    >+</button>
                   </div>
-                  <p className="font-mono text-[9px] text-[#444] mt-1 uppercase tracking-[0.1em]">Max: {selectedVariant.stock}</p>
+                  <p className="font-mono text-[9px] text-neutral-400 mt-1 uppercase tracking-[0.1em]">Max: {selectedVariant.stock}</p>
                 </div>
 
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555] mb-2">Additional Notes</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-neutral-400 mb-2">Additional Notes</p>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Any special instructions (optional)"
                     rows={3}
-                    className="w-full bg-[#0d0d0d] border border-[#333] text-white font-mono text-[11px] p-3 placeholder-[#333] focus:outline-none focus:border-[#FF007F] resize-none transition-colors"
+                    className="w-full bg-white border border-neutral-200 text-black font-mono text-[11px] p-3 placeholder-neutral-300 focus:outline-none focus:border-black resize-none transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-[#222]">
+              <div className="mt-4 pt-4 border-t border-neutral-100">
                 <div className="flex justify-between items-end">
-                  <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]">Total</span>
-                  <span className="font-display font-black text-2xl text-[#FF007F]">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-neutral-400">Total</span>
+                  <span className="font-display font-black text-2xl text-magenta">
                     {formatCurrency(selectedVariant.price * quantity, selectedProduct.currency)}
                   </span>
                 </div>
-                <p className="font-mono text-[9px] text-[#333] mt-1 uppercase tracking-[0.1em]">
+                <p className="font-mono text-[9px] text-neutral-300 mt-1 uppercase tracking-[0.1em]">
                   + printing charges at checkout
                 </p>
               </div>
             </div>
           </div>
 
-          {addError && <p className="mb-4 font-mono text-[11px] text-red-400">{addError}</p>}
+          {addError && <p className="mb-4 font-mono text-[11px] text-red-500">{addError}</p>}
 
           <div className="flex flex-wrap gap-3 justify-between">
-            <button onClick={() => setStep(3)} className="border border-[#333] text-[#888] font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-[#666] hover:text-white transition-all">Back to Design</button>
+            <button
+              onClick={() => setStep(3)}
+              className="border border-neutral-300 text-neutral-500 font-mono text-[11px] uppercase tracking-[0.15em] px-5 py-2.5 hover:border-black hover:text-black transition-all"
+            >Back to Design</button>
             <button
               onClick={() => addToCartMutation.mutate()}
               disabled={addToCartMutation.isPending}
-              className="bg-[#FF007F] text-white font-mono text-[11px] uppercase tracking-[0.15em] px-10 py-3 hover:bg-[#e60072] transition-colors disabled:opacity-50"
+              className="bg-black text-white font-mono text-[11px] uppercase tracking-[0.15em] px-10 py-3 hover:bg-neutral-800 transition-colors disabled:opacity-50"
             >
               {addToCartMutation.isPending ? 'Adding...' : 'Add to Cart →'}
             </button>

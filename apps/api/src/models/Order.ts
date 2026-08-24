@@ -17,7 +17,8 @@ const orderItemSchema = new Schema(
   {
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     productName: { type: String, required: true },
-    colourName: { type: String, required: true },
+    // Legacy single-colour fields (optional for unified bulk orders)
+    colourName: { type: String },
     colourHex: { type: String },
     variants: [
       {
@@ -36,6 +37,31 @@ const orderItemSchema = new Schema(
     ],
     designId: { type: Schema.Types.ObjectId, ref: 'Design' },
     pricingSnapshot: { type: Schema.Types.Mixed },
+    // Unified multi-colour bulk fields
+    isBulkOrder: { type: Boolean, default: false },
+    colours: [
+      {
+        colourName: { type: String, required: true },
+        colourHex: { type: String },
+        colourImage: { type: String },
+        variants: [
+          {
+            variantId: { type: String, required: true },
+            size: { type: String, required: true },
+            quantity: { type: Number, required: true },
+            unitPrice: { type: Number },
+          },
+        ],
+      },
+    ],
+    artworks: [
+      {
+        colourName: { type: String },
+        locationId: { type: String },
+        url: { type: String, required: true },
+        filename: { type: String, required: true },
+      },
+    ],
   },
   { _id: true }
 );

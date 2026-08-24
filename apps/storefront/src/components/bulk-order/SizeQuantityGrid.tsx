@@ -1,76 +1,136 @@
 import { formatCurrency } from '@printfection/shared';
-import type { BulkOrderSize } from '../../types';
+import type { BulkOrderSize, BulkColourState } from '../../types';
 
 interface SizeQuantityGridProps {
+  selectedColours: BulkColourState[];
   sizes: BulkOrderSize[];
-  quantities: Record<string, number>;
   minimumOrderQuantity: number;
   currency: string;
-  onQuantityChange: (size: string, quantity: number) => void;
+  onQuantityChange: (colourName: string, size: string, quantity: number, variantId: string) => void;
 }
 
 export function SizeQuantityGrid({
+  selectedColours,
   sizes,
-  quantities,
   minimumOrderQuantity,
   currency,
   onQuantityChange,
 }: SizeQuantityGridProps) {
-  const total = Object.values(quantities).reduce((sum, q) => sum + q, 0);
-  const meetsMinimum = total >= minimumOrderQuantity;
+  const totalAllColours = selectedColours.reduce((acc, c) => {
+    return acc + Object.values(c.sizeQuantities).reduce((sum, q) => sum + q, 0);
+  }, 0);
+
+  const meetsMinimum = totalAllColours >= minimumOrderQuantity;
 
   return (
-    <div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[400px] border border-[#222]" aria-label="Size and quantity selection">
-          <thead>
-            <tr className="border-b border-[#333] bg-[#111]">
-              <th className="text-left py-3 px-4 font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]">Size</th>
-              <th className="text-left py-3 px-4 font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]">Price</th>
-              <th className="text-left py-3 px-4 font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]">Stock</th>
-              <th className="text-center py-3 px-4 font-mono text-[10px] uppercase tracking-[0.15em] text-[#555]">Quantity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sizes.map((size) => (
-              <tr key={size.size} className="border-b border-[#222] hover:bg-[#111] transition-colors">
-                <td className="py-4 px-4 font-display font-bold text-white uppercase text-sm">{size.size}</td>
-                <td className="py-4 px-4 font-mono text-[11px] text-[#888]">
-                  {formatCurrency(size.price, currency)}
-                </td>
-                <td className="py-4 px-4">
-                  <span className={`font-mono text-[11px] ${size.stock <= 10 ? 'text-orange-400' : 'text-[#22c55e]'}`}>
-                    {size.stock} available
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <input
-                    type="number"
-                    min={0}
-                    max={size.stock}
-                    value={quantities[size.size] || 0}
-                    onChange={(e) => onQuantityChange(size.size, parseInt(e.target.value, 10) || 0)}
-                    className="w-20 mx-auto block text-center bg-[#111] border border-[#333] text-white font-mono text-sm py-2 px-2 focus:outline-none focus:border-[#FF007F] transition-colors"
-                    aria-label={`Quantity for size ${size.size}`}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="space-y-8 animate-scale-in">
+      {selectedColours.map((colour) => {
+        const totalForColour = Object.values(colour.sizeQuantities).reduce((sum, q) => sum + q, 0);
 
-      <div className="mt-4 p-5 bg-[#111] border border-[#222]">
+        return (
+          <div key={colour.colourName} className="bg-white border border-outline-variant rounded-2xl overflow-hidden shadow-step">
+            {/* Colour Header Banner */}
+            <div className="bg-surface-container-low px-6 py-4 flex items-center justify-between border-b border-outline-variant">
+              <div className="flex items-center gap-3">
+                <span
+                  className="w-5 h-5 rounded-full border border-outline"
+                  style={{ backgroundColor: colour.colourHex || '#ddd' }}
+                />
+                <h3 className="font-display font-bold text-on-surface uppercase text-sm tracking-tight">
+                  {colour.colourName}
+                </h3>
+              </div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-on-surface-variant">
+                Total for colour: <strong className="text-on-surface">{totalForColour} units</strong>
+              </span>
+            </div>
+
+            {/* Sizes Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px]" aria-label={`Sizes and quantities for ${colour.colourName}`}>
+                <thead>
+                  <tr className="border-b border-outline-variant bg-surface">
+                    <th className="text-left py-3 px-6 font-mono text-[10px] uppercase tracking-[0.15em] text-on-surface-variant">Size</th>
+                    <th className="text-left py-3 px-6 font-mono text-[10px] uppercase tracking-[0.15em] text-on-surface-variant">Price</th>
+                    <th className="text-left py-3 px-6 font-mono text-[10px] uppercase tracking-[0.15em] text-on-surface-variant">Stock</th>
+                    <th className="text-center py-3 px-6 font-mono text-[10px] uppercase tracking-[0.15em] text-on-surface-variant">Quantity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sizes.map((size) => {
+                    const currentQty = colour.sizeQuantities[size.size] || 0;
+                    return (
+                      <tr key={size.size} className="border-b border-outline-variant/60 hover:bg-surface-container-low transition-colors">
+                        <td className="py-4 px-6 font-display font-bold text-on-surface uppercase text-sm">{size.size}</td>
+                        <td className="py-4 px-6 font-mono text-[11px] text-on-surface-variant">
+                          {formatCurrency(size.price, currency)}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={`font-mono text-[11px] ${size.stock <= 10 ? 'text-error font-semibold' : 'text-on-surface-variant'}`}>
+                            {size.stock} available
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => onQuantityChange(colour.colourName, size.size, currentQty - 1, size.variantId)}
+                              disabled={currentQty <= 0}
+                              className="w-8 h-8 rounded border border-outline-variant bg-surface flex items-center justify-center font-bold hover:bg-surface-container-low hover:border-outline disabled:opacity-40 transition-colors select-none"
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              min={0}
+                              max={size.stock}
+                              value={currentQty}
+                              onChange={(e) =>
+                                onQuantityChange(
+                                  colour.colourName,
+                                  size.size,
+                                  parseInt(e.target.value, 10) || 0,
+                                  size.variantId
+                                )
+                              }
+                              className="w-16 text-center border border-outline rounded py-1 px-1 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-magenta focus:border-transparent"
+                              aria-label={`Quantity for ${colour.colourName} size ${size.size}`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => onQuantityChange(colour.colourName, size.size, currentQty + 1, size.variantId)}
+                              disabled={currentQty >= size.stock}
+                              className="w-8 h-8 rounded border border-outline-variant bg-surface flex items-center justify-center font-bold hover:bg-surface-container-low hover:border-outline disabled:opacity-40 transition-colors select-none"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Global Summary & Validation */}
+      <div className="p-6 bg-white border border-outline rounded-2xl shadow-card">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-[#888]">Total Quantity</span>
-          <span className={`text-2xl font-display font-black ${total > 0 ? 'text-white' : 'text-[#444]'}`}>{total}</span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-on-surface-variant">Combined Order Total</span>
+          <span className={`text-3xl font-display font-black ${totalAllColours > 0 ? 'text-magenta' : 'text-on-surface-variant'}`}>
+            {totalAllColours} <span className="text-xs font-mono font-medium text-on-surface-variant">units</span>
+          </span>
         </div>
-        <p className={`mt-2 font-mono text-[10px] uppercase tracking-[0.1em] ${meetsMinimum ? 'text-[#22c55e]' : 'text-orange-400'}`}>
-          {meetsMinimum ? '✓ ' : ''}Minimum order: {minimumOrderQuantity} units
-          {!meetsMinimum && total > 0 && ` (${minimumOrderQuantity - total} more needed)`}
-        </p>
+        <div className="mt-3 pt-3 border-t border-outline-variant/60 flex items-center justify-between">
+          <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-on-surface-variant">Minimum Required</span>
+          <span className={`font-mono text-[10px] uppercase tracking-[0.1em] font-semibold ${meetsMinimum ? 'text-emerald-600' : 'text-amber-600'}`}>
+            {meetsMinimum ? '✓ Target Met' : `⚠️ Min Order ${minimumOrderQuantity} (${minimumOrderQuantity - totalAllColours} more needed)`}
+          </span>
+        </div>
       </div>
     </div>
   );
 }
-
