@@ -15,6 +15,8 @@ interface BulkOrderStore extends BulkOrderState {
   setPrintingMethod: (method: string) => void;
   togglePrintLocation: (location: Omit<PrintLocationSelection, 'colourCount'>) => void;
   setPrintColourCount: (locationId: string, count: number) => void;
+  setLocationPrintingMethod: (locationId: string, method: string) => void;
+  setPrintSize: (locationId: string, size: string) => void;
   setDesignStudioData: (designId: string, designsData?: Record<string, any>) => void;
   setArtworks: (artworks: BulkArtworkRef[]) => void;
   setPricing: (pricing: PricingBreakdown | null) => void;
@@ -161,7 +163,15 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
       return {
         selectedLocations: exists
           ? state.selectedLocations.filter((l) => l.locationId !== location.locationId)
-          : [...state.selectedLocations, { ...location, colourCount: 1 }],
+          : [
+              ...state.selectedLocations,
+              {
+                ...location,
+                colourCount: 1,
+                printingMethod: state.printingMethod || 'SCREEN_PRINTING',
+                printSize: 'Standard (A4 - up to 30cm)',
+              },
+            ],
         pricing: null,
       };
     }),
@@ -170,6 +180,22 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
     set((state) => ({
       selectedLocations: state.selectedLocations.map((l) =>
         l.locationId === locationId ? { ...l, colourCount: count } : l
+      ),
+      pricing: null,
+    })),
+
+  setLocationPrintingMethod: (locationId, method) =>
+    set((state) => ({
+      selectedLocations: state.selectedLocations.map((l) =>
+        l.locationId === locationId ? { ...l, printingMethod: method } : l
+      ),
+      pricing: null,
+    })),
+
+  setPrintSize: (locationId, size) =>
+    set((state) => ({
+      selectedLocations: state.selectedLocations.map((l) =>
+        l.locationId === locationId ? { ...l, printSize: size } : l
       ),
       pricing: null,
     })),
@@ -205,7 +231,13 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
   },
 
   getPrintLocationsPayload: () =>
-    get().selectedLocations.map((l) => ({ locationId: l.code, locationName: l.locationName, colourCount: l.colourCount })),
+    get().selectedLocations.map((l) => ({
+      locationId: l.code,
+      locationName: l.locationName,
+      colourCount: l.colourCount,
+      printingMethod: l.printingMethod,
+      printSize: l.printSize || 'Standard (A4 - up to 30cm)',
+    })),
 
   setEditItemIndex: (index) => set({ editItemIndex: index }),
 

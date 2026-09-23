@@ -1,7 +1,6 @@
 import { Link, NavLink } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BRAND } from '@printfection/config';
 import { apiGet } from '../../services/api';
 import type { CartData } from '../../types';
 

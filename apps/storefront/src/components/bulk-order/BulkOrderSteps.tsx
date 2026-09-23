@@ -6,10 +6,9 @@ export const STEPS = [
   { number: 3, label: 'Product' },
   { number: 4, label: 'Colour' },
   { number: 5, label: 'Sizes' },
-  { number: 6, label: 'Printing' },
-  { number: 7, label: 'Locations' },
-  { number: 8, label: 'Review' },
-  { number: 9, label: 'Checkout' },
+  { number: 6, label: 'Branding' },
+  { number: 7, label: 'Review' },
+  { number: 8, label: 'Checkout' },
 ];
 
 export function BulkOrderSteps() {

@@ -18,14 +18,14 @@ export function ProductCard({ product }: ProductCardProps) {
       <Link to={`/products/${product.slug}`} className="block flex-1 flex flex-col">
 
         {/* ── Image area ── */}
-        <div className="aspect-square relative overflow-hidden bg-neutral-50">
+        <div className="aspect-[3/4] relative overflow-hidden bg-neutral-100 p-2">
           {primaryImage ? (
             <>
               {/* Primary image */}
               <img
                 src={primaryImage}
                 alt={product.name}
-                className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
+                className={`absolute inset-0 w-full h-full object-contain object-top p-2 transition-all duration-700 ${
                   hoverImage ? 'group-hover:opacity-0' : 'group-hover:scale-105'
                 }`}
                 onError={() => setImgError(true)}
@@ -36,7 +36,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 <img
                   src={hoverImage}
                   alt={`${product.name} – alternate view`}
-                  className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+                  className="absolute inset-0 w-full h-full object-contain object-top p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
                   loading="lazy"
                 />
               )}

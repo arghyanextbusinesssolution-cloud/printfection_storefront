@@ -9,6 +9,8 @@ export interface PrintLocationSelection {
   iconSvg?: string;
   colourCount: number;
   maximumColours: number;
+  printingMethod?: string;
+  printSize?: string;
 }
 
 export interface Product {
@@ -84,8 +86,8 @@ export interface PrintLocation {
   iconSvg?: string;
   description?: string;
   maximumColours: number;
-  isActive: boolean;
-  sortOrder: number;
+  isActive?: boolean;
+  sortOrder?: number;
 }
 
 /* ─── New unified bulk order flow state ─── */

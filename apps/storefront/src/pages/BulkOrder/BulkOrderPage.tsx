@@ -6,15 +6,20 @@ import { useBulkOrderStore } from '../../store/bulkOrderStore';
 import { useCartStore } from '../../store/cartStore';
 import { BulkOrderSteps } from '../../components/bulk-order/BulkOrderSteps';
 import { GarmentTypeSelector } from '../../components/bulk-order/GarmentTypeSelector';
-import { PrintingMethodSelector } from '../../components/bulk-order/PrintingMethodSelector';
 import { SizeQuantityGrid } from '../../components/bulk-order/SizeQuantityGrid';
 import { PrintLocationSelector } from '../../components/bulk-order/PrintLocationSelector';
 import { PrintColourCountGrid } from '../../components/bulk-order/PrintColourCountGrid';
 import { PricingSummary } from '../../components/bulk-order/PricingSummary';
 import { LoadingSpinner, ErrorMessage } from '../../components/common/LoadingSpinner';
 import { formatCurrency } from '@printfection/shared';
-import type { Product, BulkOrderSize, PrintLocation, GarmentCategory, ProductVariant } from '../../types';
-import type { PaginatedResponse, PricingBreakdown } from '@printfection/types';
+import type { BulkOrderSize, PrintLocation, GarmentCategory, ProductVariant } from '../../types';
+import type { PricingBreakdown } from '@printfection/types';
+import {
+  DEFAULT_GARMENT_CATEGORIES,
+  DEFAULT_PRODUCT_COLOURS,
+  DEFAULT_PRINT_LOCATIONS,
+  CATALOG_PRODUCTS_BY_CATEGORY,
+} from '../../data/garmentCatalog';
 
 const QUANTITY_PRESETS = [25, 50, 100, 250, 500, 1000];
 
@@ -24,7 +29,12 @@ export function BulkOrderPage() {
   const preselectedProduct = searchParams.get('product');
   const [addError, setAddError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [confirmReset, setConfirmReset] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState<string>('ALL');
+  const [selectedClosure, setSelectedClosure] = useState<string>('ALL');
+  const [selectedWeight, setSelectedWeight] = useState<string>('ALL');
+  const [openFilterDropdown, setOpenFilterDropdown] = useState<'STYLE' | 'CLOSURE' | 'WEIGHT' | null>(null);
 
   const queryClient = useQueryClient();
   const store = useBulkOrderStore();
@@ -48,25 +58,10 @@ export function BulkOrderPage() {
     }
   }, [store.step]);
 
-  // Query Garment Categories
-  const { data: garmentCategories, isLoading: loadingCategories } = useQuery({
-    queryKey: ['garment-categories-bulk'],
-    queryFn: () => apiGet<GarmentCategory[]>('/garment-categories'),
-  });
-
-  // Query Products filtered by Garment Category
-  const { data: products, isLoading: loadingProducts } = useQuery({
-    queryKey: ['products-bulk', store.garmentCategoryId],
-    queryFn: () =>
-      apiGet<PaginatedResponse<Product>>('/products', {
-        limit: 100,
-        garmentCategory: store.garmentCategoryId || undefined,
-      }),
-    enabled: !!store.garmentCategoryId,
-  });
+  // Default garment categories & catalog products are managed via DEFAULT_GARMENT_CATEGORIES & CATALOG_PRODUCTS_BY_CATEGORY
 
   // Query Product Config
-  const { data: config, isLoading: loadingConfig } = useQuery({
+  const { data: config } = useQuery({
     queryKey: ['bulk-config', store.productId],
     queryFn: () =>
       apiGet<{
@@ -84,10 +79,10 @@ export function BulkOrderPage() {
   });
 
   // Query Print Locations
-  const { data: printLocations, isLoading: loadingLocations } = useQuery({
+  const { data: printLocations } = useQuery({
     queryKey: ['print-locations-bulk'],
     queryFn: () => apiGet<PrintLocation[]>('/print-locations'),
-    enabled: store.step >= 7,
+    enabled: store.step >= 6,
   });
 
   const pricingMutation = useMutation({
@@ -134,26 +129,37 @@ export function BulkOrderPage() {
   });
 
   const getProductSizes = (): BulkOrderSize[] => {
-    if (!variants) return [];
-    const uniqueSizes = Array.from(new Set(variants.map((v) => v.size)));
     const order = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
-    uniqueSizes.sort((a, b) => {
-      const ia = order.indexOf(a);
-      const ib = order.indexOf(b);
-      if (ia !== -1 && ib !== -1) return ia - ib;
-      return a.localeCompare(b);
-    });
+    if (variants && variants.length > 0) {
+      const uniqueSizes = Array.from(new Set(variants.map((v) => v.size)));
+      uniqueSizes.sort((a, b) => {
+        const ia = order.indexOf(a);
+        const ib = order.indexOf(b);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        return a.localeCompare(b);
+      });
 
-    return uniqueSizes.map((sz) => {
-      const match = variants.find((v) => v.size === sz);
-      return {
-        variantId: match?._id || '',
-        size: sz,
-        price: match?.price || 0,
-        stock: variants.filter((v) => v.size === sz).reduce((max, v) => Math.max(max, v.stock), 0),
-        sku: match?.sku || '',
-      };
-    });
+      return uniqueSizes.map((sz) => {
+        const match = variants.find((v) => v.size === sz);
+        return {
+          variantId: match?._id || `var-${sz.toLowerCase()}`,
+          size: sz,
+          price: match?.price || 0,
+          stock: variants.filter((v) => v.size === sz).reduce((max, v) => Math.max(max, v.stock), 9999),
+          sku: match?.sku || '',
+        };
+      });
+    }
+
+    // Default size matrix fallback (S, M, L, XL, 2XL, 3XL)
+    const defaultSizes = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+    return defaultSizes.map((sz) => ({
+      variantId: `var-${sz.toLowerCase()}`,
+      size: sz,
+      price: 0,
+      stock: 9999,
+      sku: `SKU-${sz}`,
+    }));
   };
 
   const calculatePricing = () => {
@@ -166,8 +172,9 @@ export function BulkOrderPage() {
   };
 
   useEffect(() => {
-    if (preselectedProduct && !store.productId && products?.items) {
-      const prod = products.items.find((p) => p._id === preselectedProduct);
+    if (preselectedProduct && !store.productId) {
+      const allCatalogProducts = Object.values(CATALOG_PRODUCTS_BY_CATEGORY).flat();
+      const prod = allCatalogProducts.find((p) => p._id === preselectedProduct || p.slug === preselectedProduct);
       if (prod) {
         if (prod.garmentCategory) {
           store.setGarmentCategory(prod.garmentCategory._id, prod.garmentCategory.name);
@@ -175,20 +182,73 @@ export function BulkOrderPage() {
         store.setProduct(prod._id, prod.name, prod.images);
       }
     }
-  }, [preselectedProduct, products, store.productId]);
+  }, [preselectedProduct, store.productId]);
 
   useEffect(() => {
-    if (store.step === 9 && !store.pricing && variants && store.productId) {
+    if ((store.step === 7 || store.step === 8) && store.productId) {
       calculatePricing();
     }
-  }, [store.step]);
+  }, [store.step, store.selectedColours, store.selectedLocations]);
 
   const totalQuantity = store.getTotalQuantity();
   const minQty = config?.product.minimumOrderQuantity || 25;
-  const filteredProducts = products?.items.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.brandName && p.brandName.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+
+  const activeCategories: GarmentCategory[] = DEFAULT_GARMENT_CATEGORIES;
+
+  const selectedCategoryObj = activeCategories.find((c) => c._id === store.garmentCategoryId);
+  const selectedCategorySlug = (selectedCategoryObj?.slug || selectedCategoryObj?.name || 't-shirts')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+
+  let categoryKey = 't-shirts';
+  if (selectedCategorySlug.includes('longsleeve')) categoryKey = 'longsleeves';
+  else if (selectedCategorySlug.includes('sweat')) categoryKey = 'sweatshirts';
+  else if (selectedCategorySlug.includes('hoodie')) categoryKey = 'hoodies';
+  else if (selectedCategorySlug.includes('jacket')) categoryKey = 'jackets';
+  else if (selectedCategorySlug.includes('polo')) categoryKey = 'polos';
+  else if (selectedCategorySlug.includes('bag')) categoryKey = 'bags';
+  else if (selectedCategorySlug.includes('beanie')) categoryKey = 'beanies';
+  else if (selectedCategorySlug.includes('cap')) categoryKey = 'caps';
+
+  const categoryProducts = CATALOG_PRODUCTS_BY_CATEGORY[categoryKey] || CATALOG_PRODUCTS_BY_CATEGORY['sweatshirts'] || CATALOG_PRODUCTS_BY_CATEGORY['t-shirts'];
+
+  const filteredProducts = categoryProducts.filter((p) => {
+    // Search Query Filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchName = p.name.toLowerCase().includes(q);
+      const matchBrand = (p.brandName || '').toLowerCase().includes(q);
+      const matchDesc = (p.description || '').toLowerCase().includes(q);
+      const matchTags = (p.tags || []).some((t) => t.toLowerCase().includes(q));
+      if (!matchName && !matchBrand && !matchDesc && !matchTags) return false;
+    }
+
+    const combinedText = (p.name + ' ' + (p.brandName || '') + ' ' + (p.description || '') + ' ' + (p.tags?.join(' ') || '')).toLowerCase();
+
+    // Style Filter
+    if (selectedStyle !== 'ALL') {
+      if (selectedStyle === 'ORGANIC' && !p.organic && !combinedText.includes('organic')) return false;
+      if (selectedStyle === 'HEAVYWEIGHT' && !combinedText.includes('heavy')) return false;
+      if (selectedStyle === 'SOFT' && !combinedText.includes('soft') && !combinedText.includes('light')) return false;
+      if (selectedStyle === 'CLASSIC' && !combinedText.includes('classic') && !combinedText.includes('staple')) return false;
+    }
+
+    // Closure Filter
+    if (selectedClosure !== 'ALL') {
+      if (selectedClosure === 'PULLOVER' && combinedText.includes('zip')) return false;
+      if (selectedClosure === 'ZIP' && !combinedText.includes('zip')) return false;
+      if (selectedClosure === 'SNAPBACK' && !combinedText.includes('snapback') && !combinedText.includes('strap') && !combinedText.includes('cap') && !combinedText.includes('hat')) return false;
+    }
+
+    // Weight Filter
+    if (selectedWeight !== 'ALL') {
+      if (selectedWeight === 'LIGHT' && !combinedText.includes('light') && !combinedText.includes('180') && !combinedText.includes('softstyle')) return false;
+      if (selectedWeight === 'MID' && !combinedText.includes('mid') && !combinedText.includes('classic') && !combinedText.includes('180gsm')) return false;
+      if (selectedWeight === 'HEAVY' && !combinedText.includes('heavy') && !combinedText.includes('203') && !combinedText.includes('signature') && !combinedText.includes('sherpa')) return false;
+    }
+
+    return true;
+  });
 
   const renderStepHeader = (stepNum: number, title: string, subtitle?: string) => {
     const isCompleted = store.step !== stepNum;
@@ -238,7 +298,7 @@ export function BulkOrderPage() {
             Bulk Order Configurator
           </h1>
           <p className="mt-2 text-neutral-600 font-mono text-xs tracking-wide uppercase">
-            Complete your configuration on a single guided page &middot; Step {store.step} of 9
+            Complete your configuration on a single guided page &middot; Step {store.step} of 8
           </p>
         </div>
 
@@ -397,10 +457,10 @@ export function BulkOrderPage() {
               {store.step === 2 && (
                 <div className="pt-6 space-y-6 step-enter">
                   <GarmentTypeSelector
-                    categories={garmentCategories || []}
+                    categories={activeCategories}
                     selectedCategoryId={store.garmentCategoryId}
                     onSelectCategory={(id, name) => store.setGarmentCategory(id, name)}
-                    isLoading={loadingCategories}
+                    isLoading={false}
                   />
 
                   <div className="pt-4 flex justify-between">
@@ -466,30 +526,153 @@ export function BulkOrderPage() {
                   </div>
 
                   {/* Filter Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 mb-6 border-b border-neutral-200 pb-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <select className="px-3 py-2 border-2 border-neutral-300 rounded-lg font-mono text-xs font-bold uppercase tracking-wider bg-white text-neutral-800 cursor-pointer focus:outline-none focus:border-black">
-                        <option value="">FIT ▾</option>
-                        <option value="regular">Regular Fit</option>
-                        <option value="oversized">Oversized</option>
-                        <option value="slim">Slim Fit</option>
-                      </select>
-                      <select className="px-3 py-2 border-2 border-neutral-300 rounded-lg font-mono text-xs font-bold uppercase tracking-wider bg-white text-neutral-800 cursor-pointer focus:outline-none focus:border-black">
-                        <option value="">WEIGHT ▾</option>
-                        <option value="light">Lightweight (150-180 GSM)</option>
-                        <option value="mid">Midweight (180-220 GSM)</option>
-                        <option value="heavy">Heavyweight (220+ GSM)</option>
-                      </select>
-                      <select className="px-3 py-2 border-2 border-neutral-300 rounded-lg font-mono text-xs font-bold uppercase tracking-wider bg-white text-neutral-800 cursor-pointer focus:outline-none focus:border-black">
-                        <option value="">PRINT METHOD ▾</option>
-                        <option value="screen">Screen Printing</option>
-                        <option value="dtg">DTG</option>
-                        <option value="embroidery">Embroidery</option>
-                      </select>
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-6 border-b border-neutral-200 pb-4 relative z-20">
+                    <div className="flex flex-wrap items-center gap-2 relative">
+                      {/* STYLE DROPDOWN */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setOpenFilterDropdown(openFilterDropdown === 'STYLE' ? null : 'STYLE')}
+                          className={`px-4 py-2 border-2 rounded-full font-display font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm cursor-pointer transition-colors ${
+                            selectedStyle !== 'ALL'
+                              ? 'border-magenta bg-magenta/10 text-magenta'
+                              : 'border-neutral-300 bg-white text-neutral-900 hover:border-black'
+                          }`}
+                        >
+                          <span>STYLE{selectedStyle !== 'ALL' ? `: ${selectedStyle}` : ''}</span>
+                          <span className="w-5 h-5 bg-neutral-700 text-white rounded text-[10px] flex items-center justify-center font-mono font-bold">▾</span>
+                        </button>
+
+                        {openFilterDropdown === 'STYLE' && (
+                          <div className="absolute top-full left-0 mt-2 w-56 bg-white border-2 border-neutral-900 rounded-xl shadow-2xl z-50 py-1 font-mono text-xs">
+                            {[
+                              { id: 'ALL', label: 'ALL STYLES' },
+                              { id: 'ORGANIC', label: 'ORGANIC / SUSTAINABLE' },
+                              { id: 'HEAVYWEIGHT', label: 'HEAVYWEIGHT' },
+                              { id: 'SOFT', label: 'SOFTSTYLE / PREMIUM' },
+                              { id: 'CLASSIC', label: 'CLASSIC FIT' },
+                            ].map((opt) => (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedStyle(opt.id);
+                                  setOpenFilterDropdown(null);
+                                }}
+                                className={`w-full text-left px-4 py-2 font-bold uppercase transition-colors flex items-center justify-between ${
+                                  selectedStyle === opt.id ? 'bg-magenta text-white' : 'hover:bg-neutral-100 text-neutral-900'
+                                }`}
+                              >
+                                <span>{opt.label}</span>
+                                {selectedStyle === opt.id && <span>✓</span>}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* CLOSURE DROPDOWN */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setOpenFilterDropdown(openFilterDropdown === 'CLOSURE' ? null : 'CLOSURE')}
+                          className={`px-4 py-2 border-2 rounded-full font-display font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm cursor-pointer transition-colors ${
+                            selectedClosure !== 'ALL'
+                              ? 'border-magenta bg-magenta/10 text-magenta'
+                              : 'border-neutral-300 bg-white text-neutral-900 hover:border-black'
+                          }`}
+                        >
+                          <span>CLOSURE{selectedClosure !== 'ALL' ? `: ${selectedClosure}` : ''}</span>
+                          <span className="w-5 h-5 bg-neutral-700 text-white rounded text-[10px] flex items-center justify-center font-mono font-bold">▾</span>
+                        </button>
+
+                        {openFilterDropdown === 'CLOSURE' && (
+                          <div className="absolute top-full left-0 mt-2 w-56 bg-white border-2 border-neutral-900 rounded-xl shadow-2xl z-50 py-1 font-mono text-xs">
+                            {[
+                              { id: 'ALL', label: 'ALL CLOSURES' },
+                              { id: 'PULLOVER', label: 'PULLOVER / CREW' },
+                              { id: 'ZIP', label: 'ZIP UP' },
+                              { id: 'SNAPBACK', label: 'SNAPBACK / ADJUSTABLE' },
+                            ].map((opt) => (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedClosure(opt.id);
+                                  setOpenFilterDropdown(null);
+                                }}
+                                className={`w-full text-left px-4 py-2 font-bold uppercase transition-colors flex items-center justify-between ${
+                                  selectedClosure === opt.id ? 'bg-magenta text-white' : 'hover:bg-neutral-100 text-neutral-900'
+                                }`}
+                              >
+                                <span>{opt.label}</span>
+                                {selectedClosure === opt.id && <span>✓</span>}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* WEIGHT DROPDOWN */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setOpenFilterDropdown(openFilterDropdown === 'WEIGHT' ? null : 'WEIGHT')}
+                          className={`px-4 py-2 border-2 rounded-full font-display font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm cursor-pointer transition-colors ${
+                            selectedWeight !== 'ALL'
+                              ? 'border-magenta bg-magenta/10 text-magenta'
+                              : 'border-neutral-300 bg-white text-neutral-900 hover:border-black'
+                          }`}
+                        >
+                          <span>WEIGHT{selectedWeight !== 'ALL' ? `: ${selectedWeight}` : ''}</span>
+                          <span className="w-5 h-5 bg-neutral-700 text-white rounded text-[10px] flex items-center justify-center font-mono font-bold">▾</span>
+                        </button>
+
+                        {openFilterDropdown === 'WEIGHT' && (
+                          <div className="absolute top-full left-0 mt-2 w-64 bg-white border-2 border-neutral-900 rounded-xl shadow-2xl z-50 py-1 font-mono text-xs">
+                            {[
+                              { id: 'ALL', label: 'ALL WEIGHTS' },
+                              { id: 'LIGHT', label: 'LIGHTWEIGHT (150-180 GSM)' },
+                              { id: 'MID', label: 'MIDWEIGHT (200-280 GSM)' },
+                              { id: 'HEAVY', label: 'HEAVYWEIGHT (300+ GSM)' },
+                            ].map((opt) => (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedWeight(opt.id);
+                                  setOpenFilterDropdown(null);
+                                }}
+                                className={`w-full text-left px-4 py-2 font-bold uppercase transition-colors flex items-center justify-between ${
+                                  selectedWeight === opt.id ? 'bg-magenta text-white' : 'hover:bg-neutral-100 text-neutral-900'
+                                }`}
+                              >
+                                <span>{opt.label}</span>
+                                {selectedWeight === opt.id && <span>✓</span>}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {(selectedStyle !== 'ALL' || selectedClosure !== 'ALL' || selectedWeight !== 'ALL' || searchQuery) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedStyle('ALL');
+                            setSelectedClosure('ALL');
+                            setSelectedWeight('ALL');
+                            setSearchQuery('');
+                          }}
+                          className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded-full font-mono text-[11px] font-bold uppercase tracking-wider flex items-center gap-1 border border-neutral-300 cursor-pointer"
+                        >
+                          <span>✕ CLEAR FILTERS</span>
+                        </button>
+                      )}
                     </div>
 
                     <div className="relative w-full sm:w-72">
-                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                       <input
@@ -497,25 +680,27 @@ export function BulkOrderPage() {
                         placeholder="SEARCH BY NAME OR BRAND"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 border-2 border-neutral-300 rounded-full font-mono text-xs uppercase tracking-wider focus:outline-none focus:border-neutral-900 bg-white placeholder:text-neutral-400"
+                        className="w-full pl-10 pr-4 py-2 border-2 border-neutral-300 rounded-full font-mono text-xs uppercase tracking-wider focus:outline-none focus:border-neutral-900 bg-white placeholder:text-neutral-400"
                       />
                     </div>
                   </div>
 
-                  {loadingProducts ? (
-                    <LoadingSpinner />
-                  ) : !filteredProducts || filteredProducts.length === 0 ? (
+                  {!filteredProducts || filteredProducts.length === 0 ? (
                     <ErrorMessage message="No products found matching your filter." />
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-8">
                       {filteredProducts.map((product, idx) => {
                         const isSelected = store.productId === product._id;
-                        const firstImg = product.images?.[0];
-                        const badge = idx === 0 || idx === 1
+                        const isImageFailed = failedImages[product._id];
+                        const firstImg = !isImageFailed && product.images?.[0]
+                          ? product.images[0]
+                          : product.images?.[1] || '/images/products/classic_organic_t_shirt_black_1787252480190.png';
+                        const badge = idx === 0
                           ? { label: '★ POPULAR', color: '#a17409' }
-                          : idx === 3
+                          : idx === 1
                           ? { label: '♥ STAFF PICK', color: '#a17409' }
                           : null;
+
                         return (
                           <div
                             key={product._id}
@@ -523,22 +708,19 @@ export function BulkOrderPage() {
                             className="cursor-pointer group flex flex-col justify-between"
                           >
                             <div>
-                              {/* Image Container */}
+                              {/* Image Container matching Screenshot 2 */}
                               <div
-                                className={`relative overflow-hidden bg-[#e8e8e8] rounded shadow-sm mb-3 transition-all duration-200 ${
-                                  isSelected ? 'ring-4 ring-magenta ring-offset-2' : 'group-hover:opacity-95'
+                                className={`relative overflow-hidden bg-[#e5e5e5] rounded shadow-sm mb-3 transition-all duration-200 ${
+                                  isSelected ? 'ring-4 ring-[#10b981] ring-offset-2' : 'group-hover:shadow-md'
                                 }`}
-                                style={{ aspectRatio: '4/5' }}
+                                style={{ aspectRatio: '1/1' }}
                               >
-                                {firstImg ? (
-                                  <img
-                                    src={firstImg}
-                                    alt={product.name}
-                                    className="w-full h-full object-contain object-center p-2 transition-transform duration-300 group-hover:scale-105"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-xs text-neutral-400 font-mono">No Image</div>
-                                )}
+                                <img
+                                  src={firstImg}
+                                  alt={product.name}
+                                  onError={() => setFailedImages((prev) => ({ ...prev, [product._id]: true }))}
+                                  className="w-full h-full object-contain object-center p-3 transition-transform duration-300 group-hover:scale-105"
+                                />
 
                                 {/* Badge overlay top left */}
                                 {badge && (
@@ -552,37 +734,55 @@ export function BulkOrderPage() {
 
                                 {/* Selected checkmark badge top right */}
                                 {isSelected && (
-                                  <div className="absolute top-2 right-2 w-7 h-7 bg-magenta rounded-full flex items-center justify-center shadow-md">
+                                  <div className="absolute top-2 right-2 w-7 h-7 bg-[#10b981] rounded-full flex items-center justify-center shadow-md">
                                     <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                     </svg>
                                   </div>
                                 )}
-
-                                {/* Info circle bottom right */}
-                                <button
-                                  type="button"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="absolute bottom-2 right-2 w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs font-serif italic shadow hover:scale-110 transition-transform"
-                                  title="Product details"
-                                >
-                                  i
-                                </button>
                               </div>
 
-                              {/* Title & details below image */}
-                              <h4 className="font-display font-black text-sm uppercase tracking-tight text-neutral-900 leading-snug line-clamp-2">
-                                {product.name}
-                              </h4>
-                              <p className="font-mono text-[11px] text-neutral-500 mt-1 uppercase tracking-wider">
-                                {product.brandName || 'Printfection'} &middot; {formatCurrency(product.basePrice, product.currency)}
-                              </p>
+                              {/* Details below image matching Screenshot 2 */}
+                              <div className="flex items-start justify-between gap-1 text-left">
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-display font-black text-sm md:text-base uppercase tracking-tight text-neutral-900 leading-tight truncate">
+                                    {product.name}
+                                  </h4>
+                                  <p className="font-sans text-xs text-neutral-700 font-semibold truncate mt-0.5">
+                                    {product.brandName || 'Printfection Premium'}
+                                  </p>
+                                  <p className="font-sans text-xs font-bold text-neutral-900 mt-0.5">
+                                    Style: <span className="font-normal text-neutral-800">{product.tags?.[1] || product.tags?.[0] || 'Classic Fit'}</span>
+                                  </p>
+                                  <p className="font-display font-black text-sm md:text-base text-[#b8860b] uppercase tracking-wide mt-1.5">
+                                    FROM {formatCurrency(product.basePrice, product.currency)}
+                                  </p>
+                                  <p className="font-sans text-[11px] text-neutral-500 font-semibold uppercase tracking-wide mt-0.5">
+                                    (24 COLOURS)
+                                  </p>
+                                </div>
+
+                                {/* Info badge on the right side */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                  }}
+                                  className="flex flex-col items-center justify-center cursor-pointer group/info flex-shrink-0 pt-0.5"
+                                  title="Product Details"
+                                >
+                                  <div className="w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-serif italic font-bold text-sm shadow group-hover/info:scale-110 transition-transform">
+                                    i
+                                  </div>
+                                  <span className="font-mono text-[9px] font-black tracking-widest uppercase text-black mt-0.5">INFO</span>
+                                </button>
+                              </div>
                             </div>
 
                             <button
                               type="button"
-                              className={`w-full mt-3 font-mono text-xs uppercase tracking-wider py-2 rounded font-bold transition-all ${
-                                isSelected ? 'bg-magenta text-white' : 'bg-neutral-900 text-white hover:bg-magenta'
+                              className={`w-full mt-4 font-mono text-xs uppercase tracking-wider py-2.5 rounded-lg font-bold transition-all ${
+                                isSelected ? 'bg-[#10b981] text-white' : 'bg-neutral-900 text-white hover:bg-black'
                               }`}
                             >
                               {isSelected ? '✓ Selected' : 'Select Product'}
@@ -649,15 +849,17 @@ export function BulkOrderPage() {
 
               {store.step === 4 && (
                 <div className="pt-6 space-y-6 step-enter">
-                  {loadingConfig ? (
-                    <LoadingSpinner />
-                  ) : (
-                    <>
-                      <p className="text-xs font-mono text-neutral-600 uppercase tracking-wide">
-                        Select fabric colour(s) for your order:
-                      </p>
+                  <p className="text-xs font-mono text-neutral-600 uppercase tracking-wide">
+                    Select fabric colour(s) for your order (choose one or more):
+                  </p>
+                  {(() => {
+                    const availableColours = (config?.colours && config.colours.length > 0)
+                      ? config.colours
+                      : DEFAULT_PRODUCT_COLOURS;
+
+                    return (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {config?.colours.map((colour) => {
+                        {availableColours.map((colour) => {
                           const isSelected = store.selectedColours.some((c) => c.colourName === colour.name);
                           return (
                             <button
@@ -667,7 +869,7 @@ export function BulkOrderPage() {
                                 store.toggleColour({
                                   colourName: colour.name,
                                   colourHex: colour.hex,
-                                  colourImage: colour.image,
+                                  colourImage: (colour as any).image,
                                 })
                               }
                               className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all cursor-pointer ${
@@ -687,6 +889,8 @@ export function BulkOrderPage() {
                           );
                         })}
                       </div>
+                    );
+                  })()}
 
                       <div className="pt-4 flex justify-between">
                         <button
@@ -705,8 +909,6 @@ export function BulkOrderPage() {
                           Continue to Sizes & Quantities →
                         </button>
                       </div>
-                    </>
-                  )}
                 </div>
               )}
             </div>
@@ -781,7 +983,7 @@ export function BulkOrderPage() {
                           }}
                           className="btn-magenta"
                         >
-                          Continue to Printing Method →
+                          Continue to Print Locations →
                         </button>
                       </div>
                     </>
@@ -792,7 +994,7 @@ export function BulkOrderPage() {
           </div>
         )}
 
-        {/* STEP 6: PRINTING OPTIONS */}
+        {/* STEP 6: PRINT LOCATIONS & COLOUR COUNTS */}
         {6 <= maxStepReached && (
           <div
             ref={(el) => (stepRefs.current[6] = el)}
@@ -803,58 +1005,9 @@ export function BulkOrderPage() {
             }`}
           >
             <div className="p-6">
-              {renderStepHeader(6, '6. Printing Method', 'Choose custom branding technique')}
+              {renderStepHeader(6, '6. Print Locations & Colours', 'Select placement positions and ink colour counts')}
 
               {store.step !== 6 && (
-                <div className="p-4 flex items-center justify-between text-sm text-neutral-700 font-mono bg-white rounded-lg border border-neutral-200 mt-4">
-                  <span>Selected Method: <strong className="text-neutral-900 font-bold text-base">{store.printingMethod.replace('_', ' ')}</strong></span>
-                  <span className="text-xs text-magenta font-bold">✓ Confirmed</span>
-                </div>
-              )}
-
-              {store.step === 6 && (
-                <div className="pt-6 space-y-6 step-enter">
-                  <PrintingMethodSelector
-                    selectedMethod={store.printingMethod}
-                    onSelectMethod={(methodId) => store.setPrintingMethod(methodId)}
-                  />
-
-                  <div className="pt-4 flex justify-between">
-                    <button
-                      type="button"
-                      onClick={() => store.setStep(5)}
-                      className="btn-ghost-dark text-xs"
-                    >
-                      ← Back to Sizes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => store.setStep(7)}
-                      className="btn-magenta"
-                    >
-                      Continue to Print Locations →
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* STEP 7: PRINT LOCATIONS & COLOUR COUNTS */}
-        {7 <= maxStepReached && (
-          <div
-            ref={(el) => (stepRefs.current[7] = el)}
-            className={`card transition-all duration-300 ${
-              store.step === 7
-                ? 'border-magenta/40 bg-white shadow-card-hover ring-1 ring-magenta/20'
-                : 'bg-neutral-50/80 border-neutral-200'
-            }`}
-          >
-            <div className="p-6">
-              {renderStepHeader(7, '7. Print Locations & Colours', 'Select placement positions and ink colour counts')}
-
-              {store.step !== 7 && (
                 <div className="p-4 flex items-center justify-between text-sm text-neutral-700 font-mono bg-white rounded-lg border border-neutral-200 mt-4">
                   <div>
                     <span>Selected Positions ({store.selectedLocations.length}): </span>
@@ -866,13 +1019,9 @@ export function BulkOrderPage() {
                 </div>
               )}
 
-              {store.step === 7 && (
+              {store.step === 6 && (
                 <div className="pt-6 space-y-6 step-enter">
-                  {loadingLocations ? (
-                    <LoadingSpinner />
-                  ) : (
-                    <>
-                      <PrintLocationSelector locations={printLocations || []} />
+                      <PrintLocationSelector locations={printLocations && printLocations.length > 0 ? printLocations : DEFAULT_PRINT_LOCATIONS} />
 
                       {store.selectedLocations.length > 0 && (
                         <div className="pt-4 border-t border-neutral-200">
@@ -886,48 +1035,57 @@ export function BulkOrderPage() {
                       <div className="pt-4 flex justify-between">
                         <button
                           type="button"
-                          onClick={() => store.setStep(6)}
+                          onClick={() => store.setStep(5)}
                           className="btn-ghost-dark text-xs"
                         >
-                          ← Back to Printing Method
+                          ← Back to Sizes
                         </button>
                         <button
                           type="button"
-                          onClick={() => store.setStep(8)}
+                          onClick={() => {
+                            if (store.selectedLocations.length === 0) {
+                              store.showAlert('Please select at least one print location to continue.', 'Print Location Required');
+                              return;
+                            }
+                            const unselectedSize = store.selectedLocations.find((l) => !l.printSize);
+                            if (unselectedSize) {
+                              store.showAlert(`Please select a print size for ${unselectedSize.locationName}. Print location size is mandatory.`, 'Print Size Mandatory');
+                              return;
+                            }
+                            store.setStep(7);
+                          }}
                           className="btn-magenta"
                         >
                           Continue to Review & Quote →
                         </button>
                       </div>
-                    </>
-                  )}
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* STEP 8: REVIEW */}
-        {8 <= maxStepReached && (
+        {/* STEP 7: REVIEW */}
+        {7 <= maxStepReached && (
           <div
-            ref={(el) => (stepRefs.current[8] = el)}
+            ref={(el) => (stepRefs.current[7] = el)}
             className={`card transition-all duration-300 ${
-              store.step === 8
+              store.step === 7
                 ? 'border-magenta/40 bg-white shadow-card-hover ring-1 ring-magenta/20'
                 : 'bg-neutral-50/80 border-neutral-200'
             }`}
           >
             <div className="p-6">
-              {renderStepHeader(8, '8. Order Review', 'Verify configuration and instant live quote')}
+              {renderStepHeader(7, '7. Order Review', 'Verify configuration and instant live quote')}
 
-              {store.step !== 8 && (
+              {store.step !== 7 && (
                 <div className="p-4 flex items-center justify-between text-sm text-neutral-700 font-mono bg-white rounded-lg border border-neutral-200 mt-4">
                   <span>Order Quote Total: <strong className="text-neutral-900 font-bold text-base">{store.pricing ? formatCurrency(store.pricing.total, store.pricing.currency) : 'Calculated'}</strong></span>
                   <span className="text-xs text-magenta font-bold">✓ Confirmed</span>
                 </div>
               )}
 
-              {store.step === 8 && (
+              {store.step === 7 && (
                 <div className="pt-6 space-y-6 step-enter">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                     <div className="space-y-5">
@@ -970,14 +1128,23 @@ export function BulkOrderPage() {
                         <span className="section-label mb-1 block">
                           Customisation Details
                         </span>
-                        <p className="text-xs font-mono text-neutral-700">Method: <strong className="text-neutral-900 font-bold">{store.printingMethod.replace('_', ' ')}</strong></p>
-                        <div className="space-y-2 pt-2 border-t border-neutral-200">
+                        <div className="space-y-2 pt-1">
                           {store.selectedLocations.map((loc) => (
-                            <div key={loc.locationId} className="flex justify-between items-center text-xs font-mono">
-                              <span className="text-neutral-800 font-bold">{loc.locationName}</span>
-                              <span className="bg-magenta/10 text-magenta px-2.5 py-0.5 rounded font-bold border border-magenta/20">
-                                {loc.colourCount} Colour{loc.colourCount > 1 ? 's' : ''}
-                              </span>
+                            <div key={loc.locationId} className="flex justify-between items-center text-xs font-mono border-b border-neutral-200 pb-2 last:border-0">
+                              <div>
+                                <span className="text-neutral-800 font-bold block">{loc.locationName}</span>
+                                <span className="text-[10px] text-emerald-700 font-bold uppercase block">
+                                  Size: {loc.printSize || 'Standard (A4)'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="bg-magenta/10 text-magenta px-2.5 py-0.5 rounded font-bold border border-magenta/20">
+                                  {loc.colourCount} Col
+                                </span>
+                                <span className="bg-neutral-900 text-white px-2.5 py-0.5 rounded font-bold uppercase">
+                                  {(loc.printingMethod || 'SCREEN_PRINTING').replace('_', ' ')}
+                                </span>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -991,14 +1158,14 @@ export function BulkOrderPage() {
                       <div className="pt-4 flex justify-between">
                         <button
                           type="button"
-                          onClick={() => store.setStep(7)}
+                          onClick={() => store.setStep(6)}
                           className="btn-ghost-dark text-xs"
                         >
-                          ← Back to Print Locations
+                          ← Back to Customisation
                         </button>
                         <button
                           type="button"
-                          onClick={() => store.setStep(9)}
+                          onClick={() => store.setStep(8)}
                           className="btn-magenta"
                         >
                           Proceed to Checkout →
@@ -1012,20 +1179,20 @@ export function BulkOrderPage() {
           </div>
         )}
 
-        {/* STEP 9: CHECKOUT */}
-        {9 <= maxStepReached && (
+        {/* STEP 8: CHECKOUT */}
+        {8 <= maxStepReached && (
           <div
-            ref={(el) => (stepRefs.current[9] = el)}
+            ref={(el) => (stepRefs.current[8] = el)}
             className={`card transition-all duration-300 ${
-              store.step === 9
+              store.step === 8
                 ? 'border-magenta/40 bg-white shadow-card-hover ring-1 ring-magenta/20'
                 : 'bg-neutral-50/80 border-neutral-200'
             }`}
           >
             <div className="p-6">
-              {renderStepHeader(9, '9. Add to Cart & Checkout', 'Finalize order placement')}
+              {renderStepHeader(8, '8. Add to Cart & Checkout', 'Finalize order placement')}
 
-              {store.step === 9 && (
+              {store.step === 8 && (
                 <div className="pt-6 space-y-6 step-enter">
                   <p className="text-xs font-mono text-neutral-600 uppercase tracking-wide leading-relaxed">
                     Your bulk order run configuration is complete! Click below to add this customized order to your cart and complete checkout.
@@ -1044,7 +1211,7 @@ export function BulkOrderPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => store.setStep(8)}
+                      onClick={() => store.setStep(7)}
                       className="btn-ghost-dark py-4 text-xs"
                     >
                       Review Order Details

@@ -16,7 +16,7 @@ const PRINTING_METHODS: PrintingMethodOption[] = [
     name: 'Screen Printing',
     badge: 'Most Popular',
     description: 'Vibrant, durable prints using custom silk screens and premium plastisol/water-based inks.',
-    minQtyText: 'Best for 25+ items',
+    minQtyText: '25+ items',
     recommendedFor: 'Large orders, bold vector graphics & solid colours',
     iconSvg: (
       <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@ const PRINTING_METHODS: PrintingMethodOption[] = [
     name: 'Premium Embroidery',
     badge: 'Premium Look',
     description: 'Stitched thread designs with rich texture. Long-lasting, professional corporate finish.',
-    minQtyText: 'Best for 12+ items',
+    minQtyText: '12+ items',
     recommendedFor: 'Logos on chest, caps, jackets & polo shirts',
     iconSvg: (
       <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -96,7 +96,6 @@ export const PrintingMethodSelector: FC<PrintingMethodSelectorProps> = ({
                 </div>
                 <div>
                   <h4 className="font-display font-bold text-base text-neutral-900 tracking-tight uppercase">{method.name}</h4>
-                  <span className="font-mono text-xs text-magenta font-semibold">{method.minQtyText}</span>
                 </div>
               </div>
               {method.badge && (

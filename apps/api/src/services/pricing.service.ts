@@ -13,6 +13,12 @@ export async function validateBulkOrder(
   colourName: string,
   variants: { variantId: string; size: string; quantity: number }[]
 ): Promise<{ valid: boolean; totalQuantity: number; minimumOrderQuantity: number; errors: string[] }> {
+  const isValidObjectId = /^[a-f\d]{24}$/i.test(productId || '');
+  if (!isValidObjectId) {
+    // Catalog-only frontend product — skip DB validation
+    const totalQuantity = variants.filter(v => v.quantity > 0).reduce((s, v) => s + v.quantity, 0);
+    return { valid: totalQuantity > 0, totalQuantity, minimumOrderQuantity: 25, errors: totalQuantity > 0 ? [] : ['No quantities specified'] };
+  }
   const product = await Product.findById(productId);
   if (!product || !product.isActive) {
     return { valid: false, totalQuantity: 0, minimumOrderQuantity: 0, errors: ['Product not found or inactive'] };
@@ -62,6 +68,77 @@ async function findApplicableTier(totalQuantity: number) {
 }
 
 export async function calculatePricing(input: PricingCalculateInput): Promise<PricingBreakdown> {
+  // Guard: if productId is not a valid MongoDB ObjectId (e.g. frontend catalog placeholder like "prod-gd02")
+  // return a minimal estimated breakdown so the cart can still function
+  const isValidObjectId = /^[a-f\d]{24}$/i.test(input.productId || '');
+  if (!isValidObjectId) {
+    const activeVariants = input.variants?.filter((v) => v.quantity > 0) ?? [];
+    const totalQuantity = activeVariants.reduce((sum, v) => sum + v.quantity, 0);
+
+    const baseUnitPrice = 4.50; // Standard estimated base garment price
+    const lineItems: PricingLineItem[] = [];
+
+    for (const item of activeVariants) {
+      const lineTotal = baseUnitPrice * item.quantity;
+      lineItems.push({
+        description: `Custom Garment (${item.size})`,
+        quantity: item.quantity,
+        unitPrice: baseUnitPrice,
+        total: lineTotal,
+      });
+    }
+
+    const garmentSubtotal = baseUnitPrice * totalQuantity;
+
+    // Bulk discount tier calculation
+    let discountPercent = 0;
+    if (totalQuantity >= 250) discountPercent = 15;
+    else if (totalQuantity >= 100) discountPercent = 10;
+    else if (totalQuantity >= 50) discountPercent = 5;
+
+    const discount = garmentSubtotal * (discountPercent / 100);
+
+    let printingSubtotal = 0;
+    let setupCharges = 0;
+
+    if (input.printLocations?.length) {
+      for (const pl of input.printLocations) {
+        const colours = pl.colourCount || 1;
+        const printCostPerUnit = 1.25 * colours;
+        const printCost = printCostPerUnit * totalQuantity;
+        const setupCost = 15.00 * colours;
+
+        printingSubtotal += printCost;
+        setupCharges += setupCost;
+
+        lineItems.push({
+          description: `Printing - ${pl.locationId || 'Location'} (${colours} Col)`,
+          quantity: totalQuantity,
+          unitPrice: printCostPerUnit,
+          total: printCost,
+        });
+      }
+    }
+
+    const subtotal = garmentSubtotal - discount + printingSubtotal + setupCharges;
+    const tax = subtotal * VAT_RATE;
+    const shipping = 0;
+    const total = subtotal + tax + shipping;
+
+    return {
+      garmentSubtotal,
+      printingSubtotal,
+      setupCharges,
+      discount,
+      subtotal,
+      tax,
+      shipping,
+      total,
+      currency: 'GBP',
+      lineItems,
+    };
+  }
+
   const product = await Product.findById(input.productId);
   if (!product) throw ApiError.notFound('Product not found');
 

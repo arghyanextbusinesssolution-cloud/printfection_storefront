@@ -254,14 +254,6 @@ export function DesignStudioAdapter({
     reader.readAsDataURL(file);
   };
 
-  // Delete element
-  const handleDeleteSelected = () => {
-    if (selectedId) {
-      setElements(elements.filter(el => el.id !== selectedId));
-      setSelectedId(null);
-    }
-  };
-
   // Update elements
   const handleElementChange = (id: string, newAttrs: Partial<CanvasElement>) => {
     setElements(elements.map(el => el.id === id ? { ...el, ...newAttrs } : el));
