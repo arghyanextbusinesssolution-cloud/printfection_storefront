@@ -95,26 +95,29 @@ export interface BulkColourState extends BulkColourConfig {
 }
 
 export interface BulkOrderState {
-  /* Step 1 – Garment Category */
+  /* Step 1 – Quantity */
+  targetQuantity: number;
+  /* Step 2 – Garment Category */
   garmentCategoryId: string | null;
   garmentCategoryName: string;
-  /* Step 2 – Product */
+  /* Step 3 – Product */
   productId: string | null;
   productName: string;
   productImages: string[];
-  /* Step 3 – Garment Colours (multiple) */
+  /* Step 4 – Garment Colours */
   selectedColours: BulkColourState[];
-  /* Step 4 – Size & Quantity per colour */
-  /* (stored inside selectedColours[].sizeQuantities) */
-  /* Step 5 – Print Locations */
+  /* Step 5 – Size & Quantity per colour (stored in selectedColours) */
+  /* Step 6 – Printing Method */
+  printingMethod: string;
+  /* Step 7 – Print Locations & Colours */
   selectedLocations: PrintLocationSelection[];
-  /* Step 6 – Print Colour Count per location */
-  /* (stored inside selectedLocations[].colourCount) */
-  /* Step 7 – Artwork uploads per colour+location */
+  /* Step 8 – Artwork / Design Studio */
   artworks: BulkArtworkRef[];
-  /* Pricing */
+  designId?: string | null;
+  designsData?: Record<string, any>;
+  /* Step 9 – Pricing Breakdown */
   pricing: PricingBreakdown | null;
-  /* Current wizard step (1-based) */
+  /* Step 10 – Review & Checkout */
   step: number;
   /* Edit index of cart item (null if new) */
   editItemIndex: number | null;

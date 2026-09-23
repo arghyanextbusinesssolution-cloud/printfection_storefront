@@ -25,11 +25,8 @@ export function Header() {
   }, []);
 
   const navLinks = [
-    { label: 'Services', to: '/services' },
-    { label: 'Shop', to: '/products' },
     { label: 'Bulk Order', to: '/bulk-order' },
     { label: 'Design Studio', to: '/single-order' },
-    { label: 'About', to: '/about' },
   ];
 
   return (
@@ -70,13 +67,6 @@ export function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-4">
-          <Link
-            to="/quote"
-            className="font-mono text-[11px] uppercase tracking-[0.15em] text-neutral-400 hover:text-magenta transition-colors duration-200"
-          >
-            Get a Quote
-          </Link>
-
           {/* Cart */}
           <Link
             to="/cart"
@@ -188,13 +178,6 @@ export function Header() {
 
         {/* Bottom CTAs */}
         <div className="px-6 pb-8 pt-4 flex flex-col gap-3 border-t border-neutral-800 flex-shrink-0">
-          <Link
-            to="/quote"
-            onClick={() => setMobileOpen(false)}
-            className="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400 hover:text-magenta transition-colors py-2 text-center"
-          >
-            Get a Quote
-          </Link>
           <Link
             to="/bulk-order"
             onClick={() => setMobileOpen(false)}

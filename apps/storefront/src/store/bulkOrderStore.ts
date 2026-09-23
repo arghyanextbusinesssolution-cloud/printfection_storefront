@@ -7,12 +7,15 @@ interface BulkOrderStore extends BulkOrderState {
   alertTitle: string | null;
   showAlert: (message: string, title?: string) => void;
   closeAlert: () => void;
+  setQuantity: (quantity: number) => void;
   setGarmentCategory: (id: string, name: string) => void;
   setProduct: (id: string, name: string, images: string[]) => void;
   toggleColour: (colour: { colourName: string; colourHex?: string; colourImage?: string }) => void;
   setColourQuantity: (colourName: string, size: string, quantity: number, variantId: string) => void;
+  setPrintingMethod: (method: string) => void;
   togglePrintLocation: (location: Omit<PrintLocationSelection, 'colourCount'>) => void;
   setPrintColourCount: (locationId: string, count: number) => void;
+  setDesignStudioData: (designId: string, designsData?: Record<string, any>) => void;
   setArtworks: (artworks: BulkArtworkRef[]) => void;
   setPricing: (pricing: PricingBreakdown | null) => void;
   setStep: (step: number) => void;
@@ -25,14 +28,18 @@ interface BulkOrderStore extends BulkOrderState {
 }
 
 const initialState: BulkOrderState = {
+  targetQuantity: 50,
   garmentCategoryId: null,
   garmentCategoryName: '',
   productId: null,
   productName: '',
   productImages: [],
   selectedColours: [],
+  printingMethod: 'SCREEN_PRINTING',
   selectedLocations: [],
   artworks: [],
+  designId: null,
+  designsData: undefined,
   pricing: null,
   step: 1,
   editItemIndex: null,
@@ -45,24 +52,50 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
   showAlert: (message, title = 'Notification') => set({ alertMessage: message, alertTitle: title }),
   closeAlert: () => set({ alertMessage: null, alertTitle: null }),
 
-  setGarmentCategory: (id, name) =>
+  setQuantity: (quantity) =>
     set({
-      ...initialState,
-      garmentCategoryId: id,
-      garmentCategoryName: name,
-      step: 2,
+      targetQuantity: Math.max(1, quantity),
+    }),
+
+  setGarmentCategory: (id, name) =>
+    set((state) => {
+      // If changing category, reset downstream product & specs
+      if (state.garmentCategoryId !== id) {
+        return {
+          garmentCategoryId: id,
+          garmentCategoryName: name,
+          productId: null,
+          productName: '',
+          productImages: [],
+          selectedColours: [],
+          selectedLocations: [],
+          artworks: [],
+          designId: null,
+          designsData: undefined,
+          pricing: null,
+          step: 3, // Auto advance to Product step
+        };
+      }
+      return { garmentCategoryId: id, garmentCategoryName: name, step: 3 };
     }),
 
   setProduct: (id, name, images) =>
-    set({
-      productId: id,
-      productName: name,
-      productImages: images,
-      step: 3,
-      selectedColours: [],
-      selectedLocations: [],
-      artworks: [],
-      pricing: null,
+    set((state) => {
+      if (state.productId !== id) {
+        return {
+          productId: id,
+          productName: name,
+          productImages: images,
+          selectedColours: [],
+          selectedLocations: [],
+          artworks: [],
+          designId: null,
+          designsData: undefined,
+          pricing: null,
+          step: 4, // Auto advance to Colour step
+        };
+      }
+      return { productId: id, productName: name, productImages: images, step: 4 };
     }),
 
   toggleColour: (colour) =>
@@ -98,7 +131,7 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
         const variants = Object.entries(sizeQuantities)
           .filter(([, qty]) => qty > 0)
           .map(([sz, qty]) => ({
-            variantId, // In practice, size selection maps to specific variantId from product
+            variantId,
             size: sz,
             quantity: qty,
           }));
@@ -114,6 +147,12 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
         selectedColours: newColours,
         pricing: null,
       };
+    }),
+
+  setPrintingMethod: (method) =>
+    set({
+      printingMethod: method,
+      pricing: null,
     }),
 
   togglePrintLocation: (location) =>
@@ -135,11 +174,17 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
       pricing: null,
     })),
 
+  setDesignStudioData: (designId, designsData) =>
+    set({
+      designId,
+      designsData,
+    }),
+
   setArtworks: (artworks) => set({ artworks }),
 
   setPricing: (pricing) => set({ pricing }),
 
-  setStep: (step) => set({ step }),
+  setStep: (step) => set({ step: Math.min(10, Math.max(1, step)) }),
 
   reset: () => set({ ...initialState, alertMessage: null, alertTitle: null }),
 
@@ -150,7 +195,6 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
   },
 
   getVariantsPayload: () => {
-    // Pricing calculation needs flat list of all active variant inputs
     const variants: { variantId: string; size: string; quantity: number }[] = [];
     get().selectedColours.forEach((c) => {
       c.variants.forEach((v) => {
@@ -166,7 +210,6 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
   setEditItemIndex: (index) => set({ editItemIndex: index }),
 
   loadCartItem: (item, index) => {
-    // Parse colours and sizeQuantities back from cart item structure
     const selectedColours = (item.colours || []).map((col: any) => {
       const sizeQuantities: Record<string, number> = {};
       (col.variants || []).forEach((v: any) => {
@@ -181,7 +224,6 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
       };
     });
 
-    // Parse printLocations back
     const selectedLocations = (item.printLocations || []).map((loc: any) => ({
       locationId: loc.locationId,
       locationName: loc.locationName || (loc.locationId === 'FULL_FRONT' ? 'Full Front' : loc.locationId === 'FULL_BACK' ? 'Full Back' : 'Left Chest'),
@@ -190,14 +232,18 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
       maximumColours: loc.maximumColours || 6,
     }));
 
+    const totalQty = selectedColours.reduce((t: number, c: any) => t + Object.values(c.sizeQuantities).reduce((s: number, q: any) => s + (q as number), 0), 0);
+
     set({
       editItemIndex: index,
+      targetQuantity: totalQty || 50,
       productId: item.productId,
       productName: item.productName,
       selectedColours,
       selectedLocations,
       artworks: item.artworks || [],
-      step: 7, // Go straight to summary step, but clickable header allows navigation to any step
+      designId: item.designId || null,
+      step: 9,
     });
   },
 }));
