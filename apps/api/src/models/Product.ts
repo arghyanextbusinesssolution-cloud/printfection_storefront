@@ -56,7 +56,7 @@ const productSchema = new Schema<IProduct>(
     ageGroup: { type: String, trim: true },
     basePrice: { type: Number, required: true, min: 0 },
     currency: { type: String, default: 'GBP' },
-    minimumOrderQuantity: { type: Number, required: true, min: 1, default: 25 },
+    minimumOrderQuantity: { type: Number, required: true, min: 1, default: 1 },
     isActive: { type: Boolean, default: true },
     source: { type: String, enum: ['manual', 'csv', 'api'], default: 'manual' },
     metadata: { type: Schema.Types.Mixed, default: {} },

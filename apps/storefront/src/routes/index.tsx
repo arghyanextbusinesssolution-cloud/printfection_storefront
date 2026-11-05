@@ -20,6 +20,7 @@ export function AppRoutes() {
         <Route path="products" element={<ProductsPage />} />
         <Route path="products/:slug" element={<ProductDetailsPage />} />
         <Route path="bulk-order" element={<BulkOrderPage />} />
+        <Route path="order-online" element={<BulkOrderPage />} />
         <Route path="single-order" element={<SingleOrderPage />} />
         <Route path="cart" element={<CartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />

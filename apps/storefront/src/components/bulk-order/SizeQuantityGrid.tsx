@@ -4,7 +4,6 @@ import type { BulkOrderSize, BulkColourState } from '../../types';
 interface SizeQuantityGridProps {
   selectedColours: BulkColourState[];
   sizes: BulkOrderSize[];
-  minimumOrderQuantity: number;
   targetQuantity?: number;
   currency: string;
   onQuantityChange: (colourName: string, size: string, quantity: number, variantId: string) => void;
@@ -52,15 +51,12 @@ export function calculateDefaultSizeDistribution(
 export function SizeQuantityGrid({
   selectedColours,
   sizes,
-  minimumOrderQuantity,
-  targetQuantity = 50,
+  targetQuantity = 1,
   onQuantityChange,
 }: SizeQuantityGridProps) {
   const totalAllColours = selectedColours.reduce((acc, c) => {
     return acc + Object.values(c.sizeQuantities).reduce((sum, q) => sum + q, 0);
   }, 0);
-
-  const meetsMinimum = totalAllColours >= minimumOrderQuantity;
 
   // Auto-distribute by default if total configured quantity is 0
   useEffect(() => {
@@ -224,14 +220,12 @@ export function SizeQuantityGrid({
         <div>
           <span
             className={`font-mono text-xs uppercase tracking-wider font-bold px-3.5 py-1.5 rounded-full border ${
-              meetsMinimum
+              totalAllColours > 0
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                 : 'bg-amber-50 text-amber-700 border-amber-300'
             }`}
           >
-            {meetsMinimum
-              ? '✓ Target MOQ Reached'
-              : `⚠️ Minimum order is ${minimumOrderQuantity} units (${minimumOrderQuantity - totalAllColours} more needed)`}
+            {totalAllColours > 0 ? '✓ Quantity configured' : 'Add at least 1 unit'}
           </span>
         </div>
       </div>

@@ -21,7 +21,7 @@ import {
   CATALOG_PRODUCTS_BY_CATEGORY,
 } from '../../data/garmentCatalog';
 
-const QUANTITY_PRESETS = [25, 50, 100, 250, 500, 1000];
+const QUANTITY_PRESETS = [1, 5, 10, 25, 50, 100, 250, 500];
 
 export function BulkOrderPage() {
   const [searchParams] = useSearchParams();
@@ -191,7 +191,6 @@ export function BulkOrderPage() {
   }, [store.step, store.selectedColours, store.selectedLocations]);
 
   const totalQuantity = store.getTotalQuantity();
-  const minQty = config?.product.minimumOrderQuantity || 25;
 
   const activeCategories: GarmentCategory[] = DEFAULT_GARMENT_CATEGORIES;
 
@@ -201,14 +200,13 @@ export function BulkOrderPage() {
     .replace(/[^a-z0-9]/g, '');
 
   let categoryKey = 't-shirts';
-  if (selectedCategorySlug.includes('longsleeve')) categoryKey = 'longsleeves';
-  else if (selectedCategorySlug.includes('sweat')) categoryKey = 'sweatshirts';
+  if (selectedCategorySlug.includes('sweat')) categoryKey = 'sweatshirts';
   else if (selectedCategorySlug.includes('hoodie')) categoryKey = 'hoodies';
-  else if (selectedCategorySlug.includes('jacket')) categoryKey = 'jackets';
   else if (selectedCategorySlug.includes('polo')) categoryKey = 'polos';
+  else if (selectedCategorySlug.includes('jersey')) categoryKey = 'longsleeves';
+  else if (selectedCategorySlug.includes('cap') || selectedCategorySlug.includes('beanie')) categoryKey = 'beanies-caps';
   else if (selectedCategorySlug.includes('bag')) categoryKey = 'bags';
-  else if (selectedCategorySlug.includes('beanie')) categoryKey = 'beanies';
-  else if (selectedCategorySlug.includes('cap')) categoryKey = 'caps';
+  else if (selectedCategorySlug.includes('fabric') || selectedCategorySlug.includes('print')) categoryKey = 'jackets';
 
   const categoryProducts = CATALOG_PRODUCTS_BY_CATEGORY[categoryKey] || CATALOG_PRODUCTS_BY_CATEGORY['sweatshirts'] || CATALOG_PRODUCTS_BY_CATEGORY['t-shirts'];
 
@@ -295,7 +293,7 @@ export function BulkOrderPage() {
             Custom Clothing Manufacturing
           </span>
           <h1 className="text-3xl md:text-5xl font-display font-black uppercase tracking-tight text-neutral-900 mt-1">
-            Bulk Order Configurator
+            Order Online
           </h1>
           <p className="mt-2 text-neutral-600 font-mono text-xs tracking-wide uppercase">
             Complete your configuration on a single guided page &middot; Step {store.step} of 8
@@ -372,7 +370,7 @@ export function BulkOrderPage() {
               {store.step === 1 && (
                 <div className="pt-6 space-y-6 step-enter">
                   <p className="text-xs font-mono text-neutral-600 uppercase tracking-wide">
-                    Select your required quantity run. Minimum bulk order is <strong className="text-neutral-900 font-bold">25 items</strong>.
+                    Select your required quantity. There is <strong className="text-neutral-900 font-bold">no minimum order</strong>.
                   </p>
 
                   <div className="flex flex-wrap gap-3">
@@ -397,24 +395,24 @@ export function BulkOrderPage() {
                     <div className="flex items-center border-2 border-neutral-300 rounded-xl overflow-hidden bg-white">
                       <button
                         type="button"
-                        onClick={() => store.setQuantity(Math.max(25, store.targetQuantity - 10))}
+                        onClick={() => store.setQuantity(Math.max(1, store.targetQuantity - 1))}
                         className="px-4 py-2.5 bg-neutral-100 text-neutral-800 hover:bg-neutral-200 font-mono font-bold transition-colors cursor-pointer"
                       >
-                        -10
+                        -1
                       </button>
                       <input
                         type="number"
                         min={1}
                         value={store.targetQuantity}
-                        onChange={(e) => store.setQuantity(parseInt(e.target.value) || 25)}
+                        onChange={(e) => store.setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
                         className="w-24 text-center bg-transparent py-2 text-neutral-900 font-mono font-bold text-base focus:outline-none"
                       />
                       <button
                         type="button"
-                        onClick={() => store.setQuantity(store.targetQuantity + 10)}
+                        onClick={() => store.setQuantity(store.targetQuantity + 1)}
                         className="px-4 py-2.5 bg-neutral-100 text-neutral-800 hover:bg-neutral-200 font-mono font-bold transition-colors cursor-pointer"
                       >
-                        +10
+                        +1
                       </button>
                     </div>
                   </div>
@@ -445,7 +443,7 @@ export function BulkOrderPage() {
             }`}
           >
             <div className="p-6">
-              {renderStepHeader(2, '2. Garment Type', 'Choose apparel category')}
+              {renderStepHeader(2, '2. Garment Type', 'Choose a garment category')}
 
               {store.step !== 2 && (
                 <div className="p-4 flex items-center justify-between text-sm text-neutral-700 font-mono bg-white rounded-lg border border-neutral-200 mt-4">
@@ -943,11 +941,11 @@ export function BulkOrderPage() {
                     <>
                       <div className="flex items-center justify-between bg-neutral-50 border border-neutral-200 p-4 rounded-xl">
                         <span className="text-xs font-mono text-neutral-700">
-                          Target Run: <strong className="text-neutral-900 font-bold">{store.targetQuantity} units</strong> &middot; Configured Total: <strong className={totalQuantity >= minQty ? 'text-green-600 font-bold' : 'text-magenta font-bold'}>{totalQuantity} units</strong>
+                          Target Run: <strong className="text-neutral-900 font-bold">{store.targetQuantity} units</strong> &middot; Configured Total: <strong className={totalQuantity > 0 ? 'text-green-600 font-bold' : 'text-magenta font-bold'}>{totalQuantity} units</strong>
                         </span>
-                        {totalQuantity < minQty && (
+                        {totalQuantity === 0 && (
                           <span className="text-xs font-mono text-magenta font-bold">
-                            Minimum order quantity is {minQty} units.
+                            Add at least 1 unit to continue.
                           </span>
                         )}
                       </div>
@@ -955,7 +953,6 @@ export function BulkOrderPage() {
                       <SizeQuantityGrid
                         selectedColours={store.selectedColours}
                         sizes={getProductSizes()}
-                        minimumOrderQuantity={minQty}
                         targetQuantity={store.targetQuantity}
                         currency={config?.product.currency || 'GBP'}
                         onQuantityChange={(col, sz, qty, varId) => {
@@ -975,8 +972,8 @@ export function BulkOrderPage() {
                         <button
                           type="button"
                           onClick={() => {
-                            if (totalQuantity < minQty) {
-                              store.showAlert(`Minimum order quantity is ${minQty} units. Your current size total is ${totalQuantity} units. Please add more sizes to proceed.`, "Minimum Quantity Required");
+                            if (totalQuantity < 1) {
+                              store.showAlert('Please add at least 1 unit before continuing.', 'Quantity Required');
                             } else {
                               store.setStep(6);
                             }
@@ -1195,7 +1192,7 @@ export function BulkOrderPage() {
               {store.step === 8 && (
                 <div className="pt-6 space-y-6 step-enter">
                   <p className="text-xs font-mono text-neutral-600 uppercase tracking-wide leading-relaxed">
-                    Your bulk order run configuration is complete! Click below to add this customized order to your cart and complete checkout.
+                    Your order configuration is complete. Add it to your cart to pay online and complete checkout.
                   </p>
 
                   {addError && <p className="font-mono text-xs text-red-600 bg-red-50 p-3 rounded border border-red-200">{addError}</p>}
@@ -1204,7 +1201,7 @@ export function BulkOrderPage() {
                     <button
                       type="button"
                       onClick={() => addToCartMutation.mutate()}
-                      disabled={addToCartMutation.isPending || totalQuantity < minQty}
+                      disabled={addToCartMutation.isPending || totalQuantity < 1}
                       className="btn-magenta flex-1 py-4 text-xs font-bold"
                     >
                       {addToCartMutation.isPending ? 'Processing Order...' : 'Add Order to Cart & Continue'}

@@ -90,7 +90,7 @@ function HeroSection() {
                 to="/bulk-order"
                 className="w-full sm:w-auto text-center rounded-full bg-white lg:bg-black text-black lg:text-white font-mono text-[11px] uppercase tracking-[0.2em] px-7 py-3.5 border-2 border-white lg:border-black hover:bg-magenta hover:border-magenta hover:text-white transition-all duration-300 active:scale-[0.97]"
               >
-                Start Bulk Order →
+                Order Online →
               </Link>
               {/* Secondary CTA */}
               <Link

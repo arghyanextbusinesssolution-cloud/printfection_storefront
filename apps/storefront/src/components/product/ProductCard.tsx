@@ -117,7 +117,6 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           </div>
 
-          {/* Price + MOQ */}
           <div className="mt-auto pt-4 flex items-end justify-between border-t border-neutral-100 mt-3">
             <div>
               <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400 mb-0.5">from</p>
@@ -126,7 +125,7 @@ export function ProductCard({ product }: ProductCardProps) {
               </p>
             </div>
             <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-neutral-400">
-              MOQ: {product.minimumOrderQuantity}
+              Order online
             </p>
           </div>
         </div>

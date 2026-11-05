@@ -41,7 +41,7 @@ const SAMPLE_PRODUCTS = [
     description: 'Premium organic cotton t-shirt, perfect for custom printing.',
     shortDescription: 'Organic cotton tee for bulk orders',
     basePrice: 4.50,
-    minimumOrderQuantity: 25,
+    minimumOrderQuantity: 1,
     organic: true,
     gender: 'Unisex',
     fabric: '100% Organic Cotton',
@@ -63,7 +63,7 @@ const SAMPLE_PRODUCTS = [
     description: 'Heavyweight hoodie with soft fleece interior.',
     shortDescription: 'Premium heavyweight hoodie',
     basePrice: 12.00,
-    minimumOrderQuantity: 25,
+    minimumOrderQuantity: 1,
     organic: false,
     gender: 'Unisex',
     fabric: '80% Cotton, 20% Polyester',
@@ -85,7 +85,7 @@ const SAMPLE_PRODUCTS = [
     description: 'Moisture-wicking polo shirt ideal for corporate branding.',
     shortDescription: 'Corporate performance polo',
     basePrice: 6.75,
-    minimumOrderQuantity: 50,
+    minimumOrderQuantity: 1,
     organic: false,
     gender: 'Unisex',
     fabric: 'Polyester Blend',
@@ -106,7 +106,7 @@ const SAMPLE_PRODUCTS = [
     description: 'Heavyweight classic fit crew neck sweatshirt, perfect for corporate or custom print runs.',
     shortDescription: 'Industrial classic crew sweatshirt',
     basePrice: 10.50,
-    minimumOrderQuantity: 25,
+    minimumOrderQuantity: 1,
     organic: false,
     gender: 'Unisex',
     fabric: '80% Organic Cotton, 20% Recycled Polyester',
@@ -122,62 +122,20 @@ const SAMPLE_PRODUCTS = [
 ];
 
 const PRINT_LOCATIONS = [
-  {
-    name: 'Full Front',
-    code: 'FULL_FRONT',
-    maximumColours: 8,
-    sortOrder: 1,
-    iconSvg: `<svg viewBox="0 0 100 100" class="w-full h-full stroke-current fill-none" stroke-width="1.5"><path d="M20,20 L35,15 L42,22 L58,22 L65,15 L80,20 L75,55 L65,85 L35,85 L25,55 Z" /><rect x="35" y="32" width="30" height="38" rx="2" stroke-dasharray="3,3" /></svg>`
-  },
-  {
-    name: 'Left Chest',
-    code: 'LEFT_CHEST',
-    maximumColours: 4,
-    sortOrder: 2,
-    iconSvg: `<svg viewBox="0 0 100 100" class="w-full h-full stroke-current fill-none" stroke-width="1.5"><path d="M20,20 L35,15 L42,22 L58,22 L65,15 L80,20 L75,55 L65,85 L35,85 L25,55 Z" /><circle cx="38" cy="35" r="7" stroke-dasharray="3,3" /></svg>`
-  },
-  {
-    name: 'Right Chest',
-    code: 'RIGHT_CHEST',
-    maximumColours: 4,
-    sortOrder: 3,
-    iconSvg: `<svg viewBox="0 0 100 100" class="w-full h-full stroke-current fill-none" stroke-width="1.5"><path d="M20,20 L35,15 L42,22 L58,22 L65,15 L80,20 L75,55 L65,85 L35,85 L25,55 Z" /><circle cx="62" cy="35" r="7" stroke-dasharray="3,3" /></svg>`
-  },
-  {
-    name: 'Full Back',
-    code: 'FULL_BACK',
-    maximumColours: 8,
-    sortOrder: 4,
-    iconSvg: `<svg viewBox="0 0 100 100" class="w-full h-full stroke-current fill-none" stroke-width="1.5"><path d="M20,20 L35,15 L42,20 L58,20 L65,15 L80,20 L75,55 L65,85 L35,85 L25,55 Z" /><rect x="30" y="28" width="40" height="45" rx="2" stroke-dasharray="3,3" /></svg>`
-  },
-  {
-    name: 'Upper Back',
-    code: 'UPPER_BACK',
-    maximumColours: 4,
-    sortOrder: 5,
-    iconSvg: `<svg viewBox="0 0 100 100" class="w-full h-full stroke-current fill-none" stroke-width="1.5"><path d="M20,20 L35,15 L42,20 L58,20 L65,15 L80,20 L75,55 L65,85 L35,85 L25,55 Z" /><rect x="32" y="26" width="36" height="15" rx="2" stroke-dasharray="3,3" /></svg>`
-  },
-  {
-    name: 'Left Sleeve',
-    code: 'LEFT_SLEEVE',
-    maximumColours: 2,
-    sortOrder: 6,
-    iconSvg: `<svg viewBox="0 0 100 100" class="w-full h-full stroke-current fill-none" stroke-width="1.5"><path d="M20,20 L35,15 L42,22 L58,22 L65,15 L80,20 L75,55 L65,85 L35,85 L25,55 Z" /><path d="M20,20 L15,40" stroke-dasharray="3,3" /><circle cx="16" cy="30" r="5" stroke-dasharray="3,3" /></svg>`
-  },
-  {
-    name: 'Right Sleeve',
-    code: 'RIGHT_SLEEVE',
-    maximumColours: 2,
-    sortOrder: 7,
-    iconSvg: `<svg viewBox="0 0 100 100" class="w-full h-full stroke-current fill-none" stroke-width="1.5"><path d="M20,20 L35,15 L42,22 L58,22 L65,15 L80,20 L75,55 L65,85 L35,85 L25,55 Z" /><path d="M80,20 L85,40" stroke-dasharray="3,3" /><circle cx="84" cy="30" r="5" stroke-dasharray="3,3" /></svg>`
-  },
-  {
-    name: 'Neck',
-    code: 'NECK',
-    maximumColours: 1,
-    sortOrder: 8,
-    iconSvg: `<svg viewBox="0 0 100 100" class="w-full h-full stroke-current fill-none" stroke-width="1.5"><path d="M20,20 L35,15 L42,22 L58,22 L65,15 L80,20 L75,55 L65,85 L35,85 L25,55 Z" /><ellipse cx="50" cy="22" rx="8" ry="4" stroke-dasharray="3,3" /></svg>`
-  },
+  { name: 'Front', code: 'FRONT', maximumColours: 8, sortOrder: 1 },
+  { name: 'Lower Front', code: 'LOWER_FRONT', maximumColours: 8, sortOrder: 2 },
+  { name: 'Left Chest', code: 'LEFT_CHEST', maximumColours: 4, sortOrder: 3 },
+  { name: 'Right Chest', code: 'RIGHT_CHEST', maximumColours: 4, sortOrder: 4 },
+  { name: 'Left Vertical', code: 'LEFT_VERTICAL', maximumColours: 4, sortOrder: 5 },
+  { name: 'Right Vertical', code: 'RIGHT_VERTICAL', maximumColours: 4, sortOrder: 6 },
+  { name: 'Left Bottom', code: 'LEFT_BOTTOM', maximumColours: 4, sortOrder: 7 },
+  { name: 'Right Bottom', code: 'RIGHT_BOTTOM', maximumColours: 4, sortOrder: 8 },
+  { name: 'Inside Neck', code: 'INSIDE_NECK', maximumColours: 1, sortOrder: 9 },
+  { name: 'Outer Nape', code: 'OUTER_NAPE', maximumColours: 2, sortOrder: 10 },
+  { name: 'Back', code: 'BACK', maximumColours: 8, sortOrder: 11 },
+  { name: 'Lower Back', code: 'LOWER_BACK', maximumColours: 8, sortOrder: 12 },
+  { name: 'Left Sleeve', code: 'LEFT_SLEEVE', maximumColours: 2, sortOrder: 13 },
+  { name: 'Right Sleeve', code: 'RIGHT_SLEEVE', maximumColours: 2, sortOrder: 14 },
 ];
 
 const PRICING_TIERS = [

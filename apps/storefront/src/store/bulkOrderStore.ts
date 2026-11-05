@@ -30,7 +30,7 @@ interface BulkOrderStore extends BulkOrderState {
 }
 
 const initialState: BulkOrderState = {
-  targetQuantity: 50,
+  targetQuantity: 1,
   garmentCategoryId: null,
   garmentCategoryName: '',
   productId: null,
@@ -268,7 +268,7 @@ export const useBulkOrderStore = create<BulkOrderStore>((set, get) => ({
 
     set({
       editItemIndex: index,
-      targetQuantity: totalQty || 50,
+      targetQuantity: totalQty || 1,
       productId: item.productId,
       productName: item.productName,
       selectedColours,

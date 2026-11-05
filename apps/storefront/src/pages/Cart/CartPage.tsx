@@ -64,7 +64,7 @@ export function CartPage() {
           description="Configure a bulk or single custom order to get started."
           action={
             <div className="flex gap-4 justify-center">
-              <Link to="/bulk-order" className="bg-[#FF007F] text-white font-mono text-[11px] uppercase tracking-[0.15em] px-8 py-3.5 hover:bg-[#e60072] transition-colors">Start Bulk Order</Link>
+              <Link to="/bulk-order" className="bg-[#FF007F] text-white font-mono text-[11px] uppercase tracking-[0.15em] px-8 py-3.5 hover:bg-[#e60072] transition-colors">Order Online</Link>
               <Link to="/single-order" className="border border-[#333] hover:border-white text-white font-mono text-[11px] uppercase tracking-[0.15em] px-8 py-3.5 transition-all">Start Single Custom</Link>
             </div>
           }

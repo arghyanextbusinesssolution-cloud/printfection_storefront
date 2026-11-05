@@ -24,7 +24,7 @@ export function Header() {
   }, []);
 
   const navLinks = [
-    { label: 'Bulk Order', to: '/bulk-order' },
+    { label: 'Order Online', to: '/bulk-order' },
     { label: 'Design Studio', to: '/single-order' },
   ];
 

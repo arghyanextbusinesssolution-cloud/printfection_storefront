@@ -14,7 +14,7 @@ const productSchema = z.object({
   description: z.string().optional(),
   shortDescription: z.string().optional(),
   basePrice: z.coerce.number().min(0),
-  minimumOrderQuantity: z.coerce.number().min(1).default(25),
+  minimumOrderQuantity: z.coerce.number().min(1).default(1),
   organic: z.boolean().optional(),
   gender: z.string().optional(),
   fabric: z.string().optional(),
@@ -67,7 +67,7 @@ export function ProductFormPage() {
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
-    defaultValues: { minimumOrderQuantity: 25, isActive: true },
+    defaultValues: { minimumOrderQuantity: 1, isActive: true },
   });
 
   useEffect(() => {
@@ -142,10 +142,7 @@ export function ProductFormPage() {
             <label className="block text-sm font-medium mb-1">Base Price (£) *</label>
             <input type="number" step="0.01" {...register('basePrice')} className="input-field" />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Minimum Order Qty</label>
-            <input type="number" {...register('minimumOrderQuantity')} className="input-field" />
-          </div>
+          <input type="hidden" {...register('minimumOrderQuantity')} />
           <div>
             <label className="block text-sm font-medium mb-1">Gender</label>
             <input {...register('gender')} className="input-field" placeholder="Unisex" />

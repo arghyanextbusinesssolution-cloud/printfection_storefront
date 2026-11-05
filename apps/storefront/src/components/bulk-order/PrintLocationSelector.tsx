@@ -5,106 +5,185 @@ interface PrintLocationSelectorProps {
   locations: PrintLocation[];
 }
 
-function getGarmentSvg(code?: string, name?: string, isSelected?: boolean) {
-  const lc = (code || name || '').toLowerCase();
-  const strokeColor = '#171717';
-  const spotColor = isSelected ? '#FF007F' : '#b8860b';
-
-  // Base T-shirt path matching Monster Press style
-  const tShirtPath = (
-    <path
-      d="M30 18 C38 24 62 24 70 18 L88 30 L78 44 L72 38 L72 84 L28 84 L28 38 L22 44 L12 30 Z"
-      fill="#ffffff"
-      stroke={strokeColor}
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  );
-  const collarPath = (
-    <path
-      d="M38 18 C44 24 56 24 62 18"
-      fill="none"
-      stroke={strokeColor}
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-  );
-
-  if (lc.includes('back')) {
-    return (
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {tShirtPath}
-        <path d="M38 18 C44 20 56 20 62 18" fill="none" stroke={strokeColor} strokeWidth="1.5" strokeDasharray="2 2" />
-        {/* Large Back Spot */}
-        <ellipse cx="50" cy="48" rx="16" ry="20" fill={spotColor} />
-      </svg>
-    );
-  }
-
-  if (lc.includes('left_chest') || lc.includes('left chest')) {
-    return (
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {tShirtPath}
-        {collarPath}
-        {/* Left chest spot (viewer's right side) */}
-        <circle cx="60" cy="40" r="7" fill={spotColor} />
-      </svg>
-    );
-  }
-
-  if (lc.includes('right_chest') || lc.includes('right chest')) {
-    return (
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {tShirtPath}
-        {collarPath}
-        {/* Right chest spot (viewer's left side) */}
-        <circle cx="40" cy="40" r="7" fill={spotColor} />
-      </svg>
-    );
-  }
-
-  if (lc.includes('left_sleeve') || lc.includes('left sleeve')) {
-    return (
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {tShirtPath}
-        {collarPath}
-        {/* Left sleeve spot (viewer's right) */}
-        <circle cx="76" cy="42" r="6" fill={spotColor} />
-      </svg>
-    );
-  }
-
-  if (lc.includes('right_sleeve') || lc.includes('right sleeve')) {
-    return (
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {tShirtPath}
-        {collarPath}
-        {/* Right sleeve spot (viewer's left) */}
-        <circle cx="24" cy="42" r="6" fill={spotColor} />
-      </svg>
-    );
-  }
-
-  if (lc.includes('neck') || lc.includes('tag')) {
-    return (
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {tShirtPath}
-        {collarPath}
-        {/* Inside Neck Tag Spot */}
-        <ellipse cx="50" cy="24" rx="7" ry="4" fill={spotColor} />
-      </svg>
-    );
-  }
-
-  // Default Front Center Chest Spot
+/* ─── Front-facing T-shirt outline ─── */
+function ShirtFront({ children }: { children?: React.ReactNode }) {
   return (
-    <svg viewBox="0 0 100 100" className="w-full h-full">
-      {tShirtPath}
-      {collarPath}
-      {/* Front Center Spot */}
-      <ellipse cx="50" cy="50" rx="16" ry="20" fill={spotColor} />
+    <svg viewBox="0 0 200 220" className="w-full h-full">
+      {/* Body + sleeves */}
+      <path
+        d="M62 38 C80 52 120 52 138 38 L178 68 L162 96 L144 78 L144 200 L56 200 L56 78 L38 96 L22 68 Z"
+        fill="#ffffff"
+        stroke="#333333"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      {/* Collar */}
+      <path
+        d="M76 38 C88 54 112 54 124 38"
+        fill="none"
+        stroke="#333333"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      {children}
     </svg>
+  );
+}
+
+/* ─── Back-facing T-shirt outline ─── */
+function ShirtBack({ children }: { children?: React.ReactNode }) {
+  return (
+    <svg viewBox="0 0 200 220" className="w-full h-full">
+      {/* Body + sleeves */}
+      <path
+        d="M62 38 C80 52 120 52 138 38 L178 68 L162 96 L144 78 L144 200 L56 200 L56 78 L38 96 L22 68 Z"
+        fill="#ffffff"
+        stroke="#333333"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      {/* Back collar (flat line) */}
+      <path
+        d="M76 38 C88 44 112 44 124 38"
+        fill="none"
+        stroke="#333333"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      {children}
+    </svg>
+  );
+}
+
+/* ─── Sleeve outline for sleeve placements ─── */
+function SleeveOutline({ children, flip }: { children?: React.ReactNode; flip?: boolean }) {
+  return (
+    <svg viewBox="0 0 200 220" className="w-full h-full">
+      <g transform={flip ? 'translate(200,0) scale(-1,1)' : undefined}>
+        <path
+          d="M76 24 C96 28 124 44 140 76 L156 176 L44 176 L60 76 C68 48 68 28 76 24 Z"
+          fill="#ffffff"
+          stroke="#333333"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <path d="M64 76 L136 76" fill="none" stroke="#333333" strokeWidth="1.5" />
+        {children}
+      </g>
+    </svg>
+  );
+}
+
+const SPOT = '#c9c9c9';
+const SPOT_STROKE = '#b0b0b0';
+
+function PlacementArt({ code, name }: { code?: string; name?: string }) {
+  const key = `${code || ''} ${name || ''}`.toLowerCase().replace(/[_-]/g, ' ');
+
+  /* ── FRONT ── Large centre block */
+  if (key.includes('lower front')) {
+    return (
+      <ShirtFront>
+        <rect x="68" y="120" width="64" height="64" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtFront>
+    );
+  }
+  if (key.includes('left chest')) {
+    return (
+      <ShirtFront>
+        <rect x="100" y="66" width="30" height="30" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtFront>
+    );
+  }
+  if (key.includes('right chest')) {
+    return (
+      <ShirtFront>
+        <rect x="70" y="66" width="30" height="30" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtFront>
+    );
+  }
+  if (key.includes('left vert')) {
+    return (
+      <ShirtFront>
+        <rect x="62" y="62" width="26" height="120" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtFront>
+    );
+  }
+  if (key.includes('right vert')) {
+    return (
+      <ShirtFront>
+        <rect x="112" y="62" width="26" height="120" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtFront>
+    );
+  }
+  if (key.includes('left bottom')) {
+    return (
+      <ShirtFront>
+        <rect x="100" y="152" width="30" height="30" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtFront>
+    );
+  }
+  if (key.includes('right bottom')) {
+    return (
+      <ShirtFront>
+        <rect x="70" y="152" width="30" height="30" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtFront>
+    );
+  }
+  if (key.includes('inside neck') || (key.includes('neck') && !key.includes('nape'))) {
+    return (
+      <ShirtFront>
+        <rect x="82" y="42" width="36" height="16" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtFront>
+    );
+  }
+
+  /* ── BACK views ── */
+  if (key.includes('nape') || key.includes('outer nape') || key.includes('upper back')) {
+    return (
+      <ShirtBack>
+        <rect x="78" y="48" width="44" height="26" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtBack>
+    );
+  }
+  if (key.includes('lower back')) {
+    return (
+      <ShirtBack>
+        <rect x="64" y="120" width="72" height="68" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtBack>
+    );
+  }
+  if (key.includes('full back') || (key.includes('back') && !key.includes('lower') && !key.includes('upper'))) {
+    return (
+      <ShirtBack>
+        <rect x="66" y="62" width="68" height="80" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </ShirtBack>
+    );
+  }
+
+  /* ── SLEEVES ── */
+  if (key.includes('left sleeve')) {
+    return (
+      <SleeveOutline>
+        <rect x="76" y="88" width="48" height="44" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </SleeveOutline>
+    );
+  }
+  if (key.includes('right sleeve')) {
+    return (
+      <SleeveOutline flip>
+        <rect x="76" y="88" width="48" height="44" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+      </SleeveOutline>
+    );
+  }
+
+  /* ── FRONT (default / centre front) ── */
+  return (
+    <ShirtFront>
+      <rect x="68" y="60" width="64" height="72" rx="2" fill={SPOT} stroke={SPOT_STROKE} strokeWidth="1" />
+    </ShirtFront>
   );
 }
 
@@ -113,18 +192,20 @@ export function PrintLocationSelector({ locations }: PrintLocationSelectorProps)
 
   return (
     <div className="space-y-6 animate-scale-in">
-      {/* Location Banner Subtitle */}
-      <div className="text-center mb-6 max-w-xl mx-auto">
-        <h3 className="font-display font-black text-xl md:text-2xl uppercase tracking-tight text-neutral-900 flex items-center justify-center gap-2">
-          <span className="w-7 h-7 rounded-full border-2 border-neutral-900 inline-flex items-center justify-center text-sm font-serif italic">i</span>
-          CHOOSE YOUR PRINT LOCATIONS
+      {/* Header */}
+      <div className="text-center mb-4 max-w-2xl mx-auto">
+        <h3 className="font-display font-black text-2xl md:text-3xl uppercase tracking-tight text-neutral-900">
+          Print Placements
         </h3>
-        <p className="text-xs text-neutral-600 font-sans mt-1.5 leading-relaxed">
-          We will send you a digital proof to approve before printing your order. Artwork can be uploaded after checkout.
+        <p className="text-xs md:text-sm text-neutral-600 mt-2 leading-relaxed uppercase tracking-wide font-display font-bold">
+          There are a number of positions on a garment you can print and we have
+          the facilities to do them all. Below you can find a wide range of
+          positions for printing to give you an idea.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      {/* Grid of placement cards - 4 columns like the reference */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-8 bg-white border border-neutral-200 rounded-2xl p-6 md:p-10">
         {locations.map((location) => {
           const isSelected = selectedLocations.some((l) => l.locationId === location._id);
 
@@ -141,30 +222,26 @@ export function PrintLocationSelector({ locations }: PrintLocationSelectorProps)
                   maximumColours: location.maximumColours,
                 })
               }
-              className={`flex flex-col items-center justify-center p-4 border-3 transition-all duration-200 rounded-2xl outline-none select-none relative group cursor-pointer ${
+              className={`group flex flex-col items-center justify-start transition-all duration-200 rounded-xl outline-none select-none relative cursor-pointer p-3 ${
                 isSelected
-                  ? 'border-emerald-500 bg-emerald-50/20 shadow-md ring-2 ring-emerald-500/20'
-                  : 'border-neutral-200 bg-white hover:border-black hover:shadow-sm'
+                  ? 'bg-magenta/5 ring-2 ring-magenta shadow-md'
+                  : 'hover:bg-neutral-50 hover:shadow-sm'
               }`}
             >
-              {/* T-Shirt SVG Graphic */}
-              <div className="w-24 h-24 mb-2 transition-transform duration-200 group-hover:scale-105">
-                {getGarmentSvg(location.code, location.name, isSelected)}
+              {/* T-shirt illustration */}
+              <div className="w-full aspect-square max-w-[160px]">
+                <PlacementArt code={location.code} name={location.name} />
               </div>
 
-              {/* Location Label */}
-              <span
-                className={`font-display font-black text-xs uppercase tracking-tight text-center transition-colors ${
-                  isSelected ? 'text-emerald-700' : 'text-neutral-900'
-                }`}
-              >
+              {/* Label */}
+              <span className="mt-2 font-display font-black text-[11px] md:text-xs uppercase tracking-wider text-center text-neutral-900 leading-tight">
                 {location.name}
               </span>
 
-              {/* Checkmark circle badge top-right */}
+              {/* Selected checkmark */}
               {isSelected && (
-                <div className="absolute top-2.5 right-2.5 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center shadow-md animate-scale-in">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <div className="absolute top-2 right-2 w-6 h-6 bg-magenta rounded-full flex items-center justify-center shadow">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>

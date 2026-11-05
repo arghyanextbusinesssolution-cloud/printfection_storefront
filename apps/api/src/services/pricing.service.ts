@@ -17,7 +17,7 @@ export async function validateBulkOrder(
   if (!isValidObjectId) {
     // Catalog-only frontend product — skip DB validation
     const totalQuantity = variants.filter(v => v.quantity > 0).reduce((s, v) => s + v.quantity, 0);
-    return { valid: totalQuantity > 0, totalQuantity, minimumOrderQuantity: 25, errors: totalQuantity > 0 ? [] : ['No quantities specified'] };
+    return { valid: totalQuantity > 0, totalQuantity, minimumOrderQuantity: 1, errors: totalQuantity > 0 ? [] : ['No quantities specified'] };
   }
   const product = await Product.findById(productId);
   if (!product || !product.isActive) {
@@ -29,12 +29,6 @@ export async function validateBulkOrder(
 
   if (totalQuantity === 0) {
     errors.push('At least one item must have a quantity greater than zero');
-  }
-
-  if (totalQuantity > 0 && totalQuantity < product.minimumOrderQuantity) {
-    errors.push(
-      `Minimum order quantity is ${product.minimumOrderQuantity}. Current total: ${totalQuantity}`
-    );
   }
 
   for (const item of variants.filter((v) => v.quantity > 0)) {
@@ -54,7 +48,7 @@ export async function validateBulkOrder(
   return {
     valid: errors.length === 0,
     totalQuantity,
-    minimumOrderQuantity: product.minimumOrderQuantity,
+    minimumOrderQuantity: 1,
     errors,
   };
 }
@@ -147,12 +141,6 @@ export async function calculatePricing(input: PricingCalculateInput): Promise<Pr
 
   if (totalQuantity === 0) {
     throw ApiError.badRequest('Total quantity must be greater than zero');
-  }
-
-  if (totalQuantity < product.minimumOrderQuantity) {
-    throw ApiError.badRequest(
-      `Minimum order quantity is ${product.minimumOrderQuantity}`
-    );
   }
 
   const tier = await findApplicableTier(totalQuantity);

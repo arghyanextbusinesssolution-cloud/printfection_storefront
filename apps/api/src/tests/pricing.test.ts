@@ -18,15 +18,13 @@ describe('Shared utilities', () => {
 });
 
 describe('Pricing validation logic', () => {
-  it('validates minimum order quantity', () => {
-    const minimumOrderQuantity = 25;
-    const totalQuantity = 20;
-    expect(totalQuantity < minimumOrderQuantity).toBe(true);
+  it('accepts any quantity of 1 or more', () => {
+    const totalQuantity = 1;
+    expect(totalQuantity >= 1).toBe(true);
   });
 
-  it('passes when quantity meets minimum', () => {
-    const minimumOrderQuantity = 25;
-    const totalQuantity = 30;
-    expect(totalQuantity >= minimumOrderQuantity).toBe(true);
+  it('rejects zero quantity', () => {
+    const totalQuantity = 0;
+    expect(totalQuantity > 0).toBe(false);
   });
 });

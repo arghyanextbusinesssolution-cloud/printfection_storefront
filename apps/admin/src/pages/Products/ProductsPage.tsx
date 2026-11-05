@@ -62,7 +62,6 @@ export function ProductsPage() {
                 <th className="text-left px-4 py-3 font-medium">Brand</th>
                 <th className="text-left px-4 py-3 font-medium">Category</th>
                 <th className="text-right px-4 py-3 font-medium">Price</th>
-                <th className="text-right px-4 py-3 font-medium">MOQ</th>
                 <th className="text-center px-4 py-3 font-medium">Status</th>
                 <th className="text-right px-4 py-3 font-medium">Actions</th>
               </tr>
@@ -75,7 +74,6 @@ export function ProductsPage() {
                   <td className="px-4 py-3">{product.brandName || '—'}</td>
                   <td className="px-4 py-3">{product.category?.name || '—'}</td>
                   <td className="px-4 py-3 text-right">{formatCurrency(product.basePrice, product.currency)}</td>
-                  <td className="px-4 py-3 text-right">{product.minimumOrderQuantity}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
                       product.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'

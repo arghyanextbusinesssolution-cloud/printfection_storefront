@@ -48,7 +48,7 @@ export function ProductDetailsPage() {
           </p>
 
           <p className="mt-2 text-sm text-brand-gray">
-            Minimum order: {product.minimumOrderQuantity} units
+            Order any quantity — no minimum.
           </p>
 
           {product.shortDescription && (
@@ -98,7 +98,7 @@ export function ProductDetailsPage() {
 
           <div className="mt-8 flex flex-wrap gap-4">
             <Link to={`/bulk-order?product=${product._id}`} className="btn-primary">
-              Configure Bulk Order
+              Order Online
             </Link>
           </div>
 

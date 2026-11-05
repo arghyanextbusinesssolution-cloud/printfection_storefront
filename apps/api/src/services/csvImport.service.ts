@@ -68,7 +68,7 @@ export async function importProducts(
           category: categoryId,
           description: np.description,
           basePrice: np.basePrice,
-          minimumOrderQuantity: np.minimumOrderQuantity ?? 25,
+          minimumOrderQuantity: np.minimumOrderQuantity ?? 1,
           currency: np.currency ?? 'GBP',
           source: 'csv',
           isActive: true,

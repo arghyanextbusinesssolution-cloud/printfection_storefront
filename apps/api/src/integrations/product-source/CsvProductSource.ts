@@ -88,7 +88,7 @@ export class CsvProductSource implements ProductSourceAdapter {
           categoryName: getField(row, this.mapping, 'categoryName') || undefined,
           description: getField(row, this.mapping, 'description') || undefined,
           basePrice: parseNumber(getField(row, this.mapping, 'basePrice')),
-          minimumOrderQuantity: parseNumber(getField(row, this.mapping, 'minimumOrderQuantity'), 25),
+          minimumOrderQuantity: parseNumber(getField(row, this.mapping, 'minimumOrderQuantity'), 1),
           currency: 'GBP',
           variants: [],
         });

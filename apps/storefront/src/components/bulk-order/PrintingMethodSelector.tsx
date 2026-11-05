@@ -16,7 +16,7 @@ const PRINTING_METHODS: PrintingMethodOption[] = [
     name: 'Screen Printing',
     badge: 'Most Popular',
     description: 'Vibrant, durable prints using custom silk screens and premium plastisol/water-based inks.',
-    minQtyText: '25+ items',
+    minQtyText: 'Any quantity',
     recommendedFor: 'Large orders, bold vector graphics & solid colours',
     iconSvg: (
       <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -29,7 +29,7 @@ const PRINTING_METHODS: PrintingMethodOption[] = [
     name: 'Direct to Garment (DTG)',
     badge: 'No Min Order',
     description: 'High-definition digital printing straight onto fabric. Unlimited colours and soft hand-feel.',
-    minQtyText: '1+ items',
+    minQtyText: 'Any quantity',
     recommendedFor: 'Full-colour artwork, photos, gradients & small runs',
     iconSvg: (
       <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -42,7 +42,7 @@ const PRINTING_METHODS: PrintingMethodOption[] = [
     name: 'Premium Embroidery',
     badge: 'Premium Look',
     description: 'Stitched thread designs with rich texture. Long-lasting, professional corporate finish.',
-    minQtyText: '12+ items',
+    minQtyText: 'Any quantity',
     recommendedFor: 'Logos on chest, caps, jackets & polo shirts',
     iconSvg: (
       <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -55,7 +55,7 @@ const PRINTING_METHODS: PrintingMethodOption[] = [
     name: 'DTF / Heat Transfer',
     badge: 'Versatile',
     description: 'High-detail film transfers pressed onto fabric under high heat. Great for complex placements.',
-    minQtyText: '10+ items',
+    minQtyText: 'Any quantity',
     recommendedFor: 'Polyester, sportswear, high detail & multi-fabric',
     iconSvg: (
       <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
